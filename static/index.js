@@ -1,10 +1,7 @@
 "use strict";
 
-const removeClass = function () {
-  coverlayer.classList.remove("coverlayer--off");
-};
-
 // 檢查token
+const scheduleBtn = document.querySelector(".topbar__right--booking");
 const token = localStorage.getItem("token");
 const loginButton = document.querySelector(".loginButton");
 const checkState = async function () {
@@ -21,15 +18,56 @@ const checkState = async function () {
     loginButton.removeEventListener("click", removeClass);
     loginButton.classList.add("logout");
     loginButton.textContent = "登出系統";
+    scheduleBtn.addEventListener("click", () => {
+      window.location.href = "/booking";
+    });
     console.log(data.data);
   } else {
     console.log("未登入");
     localStorage.removeItem("token");
+    popUp(scheduleBtn);
     return;
   }
 };
 
 checkState();
+
+const removeClass = function () {
+  coverlayer.classList.remove("coverlayer--off");
+};
+
+// 彈出式視窗
+const loginRigist = document.querySelector(".pop");
+const closingBtn = document.querySelector(".cdia");
+const closingBtn2 = document.querySelector(".cdia2");
+const coverlayer = document.querySelector(".coverlayer");
+const popup1 = document.querySelector(".popup");
+const popup2 = document.querySelector(".popup2");
+const toLogin = document.getElementById("to_login");
+const toRegist = document.getElementById("to_regist");
+
+const popUp = function (btn) {
+  btn.addEventListener("click", removeClass);
+
+  closingBtn.addEventListener("click", () => {
+    coverlayer.classList.add("coverlayer--off");
+  });
+
+  closingBtn2.addEventListener("click", () => {
+    coverlayer.classList.add("coverlayer--off");
+  });
+
+  toLogin.addEventListener("click", () => {
+    popup1.classList.add("state--off");
+    popup2.classList.remove("state--off");
+  });
+
+  toRegist.addEventListener("click", () => {
+    popup2.classList.add("state--off");
+    popup1.classList.remove("state--off");
+  });
+};
+popUp(loginRigist);
 
 const attractionContent = document.querySelector(".attraction__content");
 
@@ -430,37 +468,6 @@ const clickE = document.querySelector(".clickE");
 
 clickE.addEventListener("click", () => {
   window.location.href = "/";
-});
-
-// 彈出式視窗
-
-const loginRigist = document.querySelector(".pop");
-const closingBtn = document.querySelector(".cdia");
-const closingBtn2 = document.querySelector(".cdia2");
-const coverlayer = document.querySelector(".coverlayer");
-const popup1 = document.querySelector(".popup");
-const popup2 = document.querySelector(".popup2");
-const toLogin = document.getElementById("to_login");
-const toRegist = document.getElementById("to_regist");
-
-loginRigist.addEventListener("click", removeClass);
-
-closingBtn.addEventListener("click", () => {
-  coverlayer.classList.add("coverlayer--off");
-});
-
-closingBtn2.addEventListener("click", () => {
-  coverlayer.classList.add("coverlayer--off");
-});
-
-toLogin.addEventListener("click", () => {
-  popup1.classList.add("state--off");
-  popup2.classList.remove("state--off");
-});
-
-toRegist.addEventListener("click", () => {
-  popup2.classList.add("state--off");
-  popup1.classList.remove("state--off");
 });
 
 // 會員系統註冊
