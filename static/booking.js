@@ -41,6 +41,20 @@ const checkState = async function () {
 
 checkState();
 
+// 抓景點資料
+const attraction_render = async function () {
+  const url = "/api/booking";
+  const req = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const response = await req.json();
+  console.log(response);
+};
+attraction_render();
 // 判斷內文
 const scheduleState = document.querySelector(".scheduleState");
 let contentState = false;
@@ -48,7 +62,6 @@ let contentState = false;
 if (!contentState) {
   scheduleState.textContent = "目前沒有任何待預訂的行程";
 }
-// 是否可以利用localStorage存取景點ID，再讓booking頁面去localStorage去拿(當然換頁面就要刪除)
 
 // 登出
 document.body.addEventListener("click", (e) => {

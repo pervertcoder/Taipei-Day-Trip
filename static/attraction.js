@@ -22,9 +22,43 @@ const checkState = async function () {
     scheduleBtn.addEventListener("click", () => {
       window.location.href = "/booking";
     });
-    scheduleStart.addEventListener("click", () => {
-      // console.log(window.location.href);
+    scheduleStart.addEventListener("click", async () => {
+      // id
+      const hreF = window.location.href;
+      const hreFAr = hreF.split("/");
+      const Id = hreFAr[4];
+      //date
+      const date = document.getElementById("dateIp").value;
+      const selectRadio = document.querySelector(
+        'input[type="radio"][name="time"]:checked'
+      );
+      const label = document.querySelector(`label[for="${selectRadio.id}"]`);
+      const labelText = label.textContent.trim();
+      //price
+      const price = document.querySelector(".priceS").textContent;
+      const priceA = price.split(" ");
+      const priceNum = priceA[1];
+      // 跳轉
       window.location.href = "/booking";
+      // API
+      const rB = {
+        attractionId: Id,
+        date: date,
+        time: labelText,
+        price: priceNum,
+      };
+      const url = "/api/booking";
+      const req = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(rB),
+      });
+      const response = await req.json();
+      console.log(response);
+      // console.log("test");
     });
     console.log(data.data);
   } else {
@@ -99,6 +133,7 @@ const priceChanged = function () {
     price.textContent = "新台幣 2500 元";
   }
 };
+priceChanged();
 for (let i = 0; i < radioAll.length; i++) {
   radioAll[i].addEventListener("change", () => {
     priceChanged();
