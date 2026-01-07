@@ -505,10 +505,10 @@ def booking_fun(credentials: HTTPAuthorizationCredentials = Depends(security)):
             })
 
 		booking = render_booking()
-		# if booking == []:
-		# 	return {
-		# 		'ok' : False
-		# 	}
+		if booking == []:
+			return {
+				None
+			}
 		booking_data = list(booking)[0]
 		file_data = split_maker(booking_data[8])
 		file_data.pop(0)

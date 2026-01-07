@@ -28,9 +28,84 @@
         </div>
       </div>
       <div class="seperateLine deleteLine"></div>
-      <div class="emptyMessage">
-        <h1 class="scheduleMessage font__style1"></h1>
+      <div class="title">
+        <h1 class="title__inside font__style1"></h1>
+      </div>
+      <div class="emptyMessage state__off">
         <p class="scheduleState font__style2"></p>
+      </div>
+      <div class="attraction__info">
+        <div class="schedule__info">
+          <div class="image__left">
+            <img class="atImg" src="" alt="photo" />
+          </div>
+          <div class="info__right">
+            <div class="attraction__title--outside">
+              <p class="topLine--name">台北一日遊：</p>
+              <p class="attraction__title"></p>
+            </div>
+            <div class="attraction__date--outside">
+              <p class="topLine">日期：</p>
+              <p class="attraction__date"></p>
+            </div>
+            <div class="attraction__time--outside">
+              <p class="topLine">時間：</p>
+              <p class="attraction__time"></p>
+            </div>
+            <div class="attraction__price--outside">
+              <p class="topLine">費用：</p>
+              <p class="attraction__price"></p>
+            </div>
+            <div class="attraction__address--outside">
+              <p class="topLine">地點：</p>
+              <p class="attraction__address"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="seperateLine__inside"></div>
+      <div class="access">
+        <h1 class="accessH1 font__style1">您的聯絡資訊</h1>
+        <div class="access__inside">
+          <p>聯絡姓名：</p>
+          <input type="text" id="userName" />
+        </div>
+        <div class="access__inside">
+          <p>聯絡信箱：</p>
+          <input type="text" id="mail" />
+        </div>
+        <div class="access__inside">
+          <p>手機號碼：</p>
+          <input type="text" id="phone" />
+        </div>
+        <div class="access__inside">
+          <p>
+            請保持手機暢通，準時到達，導覽人員將用手機與您聯繫，務必留下正確的聯絡方式。
+          </p>
+        </div>
+      </div>
+      <div class="seperateLine__inside"></div>
+      <div class="credit">
+        <h1 class="creditH1 font__style1">信用卡付款資訊</h1>
+        <div class="credit__inside">
+          <p>卡片號碼：</p>
+          <input type="text" id="creditNum" placeholder="**** **** **** ****" />
+        </div>
+        <div class="credit__inside">
+          <p>過期時間：</p>
+          <input type="text" id="exp" placeholder="MM/YY" />
+        </div>
+        <div class="credit__inside">
+          <p>驗證密碼：</p>
+          <input type="password" id="password" placeholder="CVV" />
+        </div>
+      </div>
+      <div class="seperateLine__inside"></div>
+      <div class="payCheck">
+        <div class="priceShell">
+          <p class="priceCheck"></p>
+        </div>
+        <button type="button" class="comfirmBtn">確認訂購並付款</button>
       </div>
     </div>
     <footer class="footer footer__structure footer__layout">

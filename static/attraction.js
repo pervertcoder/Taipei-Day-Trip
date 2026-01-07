@@ -32,14 +32,14 @@ const checkState = async function () {
       const selectRadio = document.querySelector(
         'input[type="radio"][name="time"]:checked'
       );
+
       const label = document.querySelector(`label[for="${selectRadio.id}"]`);
       const labelText = label.textContent.trim();
       //price
       const price = document.querySelector(".priceS").textContent;
       const priceA = price.split(" ");
       const priceNum = priceA[1];
-      // 跳轉
-      window.location.href = "/booking";
+
       // API
       const rB = {
         attractionId: Id,
@@ -47,6 +47,10 @@ const checkState = async function () {
         time: labelText,
         price: priceNum,
       };
+      if (!date) {
+        alert("請選擇日期");
+        return;
+      }
       const url = "/api/booking";
       const req = await fetch(url, {
         method: "POST",
@@ -58,7 +62,8 @@ const checkState = async function () {
       });
       const response = await req.json();
       console.log(response);
-      // console.log("test");
+      // 跳轉
+      window.location.href = "/booking";
     });
     console.log(data.data);
   } else {

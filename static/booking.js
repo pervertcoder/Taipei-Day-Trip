@@ -10,7 +10,7 @@ toHomepage.addEventListener("click", () => {
   window.location.href = "/";
 });
 
-const scheduleMessage = document.querySelector(".scheduleMessage");
+const titleInside = document.querySelector(".title__inside");
 
 // 判斷token
 const token = localStorage.getItem("token");
@@ -30,7 +30,7 @@ const checkState = async function () {
     loginButton.removeEventListener("click", removeClass);
     loginButton.classList.add("logout");
     loginButton.textContent = "登出系統";
-    scheduleMessage.textContent = `您好，${data.data.name}，待預訂的行程如下`;
+    titleInside.textContent = `您好，${data.data.name}，待預訂的行程如下`;
     console.log(data.data);
   } else {
     console.log("未登入");
@@ -53,15 +53,28 @@ const attraction_render = async function () {
 
   const response = await req.json();
   console.log(response);
+
+  const data = response.data;
+  const attractionData = data.attraction;
+  const scheduleState = document.querySelector(".scheduleState");
+  scheduleState.textContent = "目前沒有任何待預訂的行程";
+
+  const atImg = document.querySelector(".atImg");
+  const attractionTitle = document.querySelector(".attraction__title");
+  const attractionDate = document.querySelector(".attraction__date");
+  const attractionTime = document.querySelector(".attraction__time");
+  const attractionPrice = document.querySelector(".attraction__price");
+  const attractionAddress = document.querySelector(".attraction__address");
+  const priceCheck = document.querySelector(".priceCheck");
+  atImg.src = attractionData.image;
+  attractionTitle.textContent = attractionData.name;
+  attractionDate.textContent = data.date;
+  attractionTime.textContent = data.time;
+  attractionPrice.textContent = data.price;
+  attractionAddress.textContent = attractionData.address;
+  priceCheck.textContent = `總價：新台幣 ${data.price} 元`;
 };
 attraction_render();
-// 判斷內文
-const scheduleState = document.querySelector(".scheduleState");
-let contentState = false;
-
-if (!contentState) {
-  scheduleState.textContent = "目前沒有任何待預訂的行程";
-}
 
 // 登出
 document.body.addEventListener("click", (e) => {
