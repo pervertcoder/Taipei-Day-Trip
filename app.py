@@ -364,7 +364,7 @@ async def check_mem (credentials: HTTPAuthorizationCredentials = Depends(securit
 	token = credentials.credentials.replace('Bearer ', '')
 	try:
 		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-		print(payload)
+		# print(payload)
 		check_DB = check_member(payload['email'])
 
 		if not check_DB:
@@ -494,7 +494,7 @@ def booking_fun(credentials: HTTPAuthorizationCredentials = Depends(security)):
 	token = credentials.credentials.replace('Bearer ', '')
 	try:
 		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-		print(payload)
+		# print(payload)
 		id = payload['id']
 		check_DB = check_member(payload['email'])
 
@@ -505,11 +505,15 @@ def booking_fun(credentials: HTTPAuthorizationCredentials = Depends(security)):
             })
 
 		booking = render_booking()
+		# if booking == []:
+		# 	return {
+		# 		'ok' : False
+		# 	}
 		booking_data = list(booking)[0]
 		file_data = split_maker(booking_data[8])
 		file_data.pop(0)
 		file_data = [i for i in file_data if i != '無']
-		print(file_data)
+		# print(file_data[0])
 		return {
 			'data' : {
 				'attraction' : {
@@ -539,7 +543,7 @@ def create_booking(request:createBooking, credentials: HTTPAuthorizationCredenti
 	token = credentials.credentials.replace('Bearer ', '')
 	try:
 		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-		print(payload)
+		# print(payload)
 		id = payload['id']
 		check_DB = check_member(payload['email'])
 
@@ -591,7 +595,7 @@ def delete_booking(credentials: HTTPAuthorizationCredentials = Depends(security)
 	token = credentials.credentials.replace('Bearer ', '')
 	try:
 		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-		print(payload)
+		# print(payload)
 		id = payload['id']
 		check_DB = check_member(payload['email'])
 
