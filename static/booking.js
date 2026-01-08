@@ -54,25 +54,59 @@ const attraction_render = async function () {
   const response = await req.json();
   console.log(response);
 
+  const emptyMessage = document.querySelector(".emptyMessage");
+  const attractionInfo = document.querySelector(".attraction__info");
+  const seperateLineInside = document.querySelectorAll(".seperateLine__inside");
+  const access = document.querySelector(".access");
+  const credit = document.querySelector(".credit");
+  const payCheck = document.querySelector(".payCheck");
+  const footer = document.querySelector(".footer");
   const data = response.data;
-  const attractionData = data.attraction;
-  const scheduleState = document.querySelector(".scheduleState");
-  scheduleState.textContent = "目前沒有任何待預訂的行程";
 
-  const atImg = document.querySelector(".atImg");
-  const attractionTitle = document.querySelector(".attraction__title");
-  const attractionDate = document.querySelector(".attraction__date");
-  const attractionTime = document.querySelector(".attraction__time");
-  const attractionPrice = document.querySelector(".attraction__price");
-  const attractionAddress = document.querySelector(".attraction__address");
-  const priceCheck = document.querySelector(".priceCheck");
-  atImg.src = attractionData.image;
-  attractionTitle.textContent = attractionData.name;
-  attractionDate.textContent = data.date;
-  attractionTime.textContent = data.time;
-  attractionPrice.textContent = data.price;
-  attractionAddress.textContent = attractionData.address;
-  priceCheck.textContent = `總價：新台幣 ${data.price} 元`;
+  if (data === null) {
+    emptyMessage.classList.remove("state__off");
+    const scheduleState = document.querySelector(".scheduleState");
+    scheduleState.textContent = "目前沒有任何待預訂的行程";
+    attractionInfo.classList.add("state__off");
+    for (let i = 0; i < seperateLineInside.length; i++) {
+      seperateLineInside[i].classList.add("state__off");
+    }
+    access.classList.add("state__off");
+    credit.classList.add("state__off");
+    payCheck.classList.add("state__off");
+    footer.classList.remove("footer__height--off");
+    footer.classList.add("footer__height--on");
+  } else {
+    const attractionData = data.attraction;
+
+    const deleteBtn = document.getElementById("delete");
+    const atImg = document.querySelector(".atImg");
+    const attractionTitle = document.querySelector(".attraction__title");
+    const attractionDate = document.querySelector(".attraction__date");
+    const attractionTime = document.querySelector(".attraction__time");
+    const attractionPrice = document.querySelector(".attraction__price");
+    const attractionAddress = document.querySelector(".attraction__address");
+    const priceCheck = document.querySelector(".priceCheck");
+    atImg.src = attractionData.image;
+    attractionTitle.textContent = attractionData.name;
+    attractionDate.textContent = data.date;
+    attractionTime.textContent = data.time;
+    attractionPrice.textContent = data.price;
+    attractionAddress.textContent = attractionData.address;
+    priceCheck.textContent = `總價：新台幣 ${data.price} 元`;
+    deleteBtn.addEventListener("click", async () => {
+      const url = "/api/booking";
+      const req = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const response = await req.json();
+      window.location.href = "/booking";
+    });
+  }
 };
 attraction_render();
 

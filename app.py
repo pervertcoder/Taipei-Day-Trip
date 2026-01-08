@@ -291,7 +291,7 @@ class booking(BaseModel):
 
 # 訂單
 class bookingResponse(BaseModel):
-	data : booking
+	data : booking | None
 
 # 建立新的訂單
 class createBooking(BaseModel):
@@ -507,7 +507,7 @@ def booking_fun(credentials: HTTPAuthorizationCredentials = Depends(security)):
 		booking = render_booking()
 		if booking == []:
 			return {
-				None
+				'data' : None
 			}
 		booking_data = list(booking)[0]
 		file_data = split_maker(booking_data[8])
@@ -596,7 +596,7 @@ def delete_booking(credentials: HTTPAuthorizationCredentials = Depends(security)
 	try:
 		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 		# print(payload)
-		id = payload['id']
+		# id = payload['id']
 		check_DB = check_member(payload['email'])
 
 		if not check_DB:

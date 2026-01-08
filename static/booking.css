@@ -78,15 +78,12 @@
   margin-top: 20px;
 }
 
-.state__off {
-  display: none;
-}
-
 .attraction__info {
   width: 55%;
   margin-top: 40px;
   display: flex;
   justify-content: center;
+  position: relative;
 }
 
 .schedule__info {
@@ -227,13 +224,16 @@
 
 .footer__structure {
   max-width: 1920px;
-  height: 104px;
   margin-top: 60px;
   background-color: #757575;
 }
 
-.footer__other {
+.footer__height--on {
   height: 100vh;
+}
+
+.footer__height--off {
+  height: 104px;
 }
 
 .footer__layout {
@@ -244,4 +244,21 @@
 .footer {
   color: white;
   padding-top: 20px;
+}
+
+#delete {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  right: 5%;
+  background-image: url(/static/images/deleteBtn.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  cursor: pointer;
+  border: white 1px solid;
+  background-color: white;
+}
+
+.state__off {
+  display: none;
 }/*# sourceMappingURL=booking.css.map */
