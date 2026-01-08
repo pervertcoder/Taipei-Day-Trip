@@ -144,7 +144,13 @@ for (let i = 0; i < radioAll.length; i++) {
     priceChanged();
   });
 }
-
+// 圖片預載優化
+const preload = function (urls) {
+  urls.forEach((url) => {
+    const img = new Image();
+    img.src = url;
+  });
+};
 // API獲取+畫面渲染
 const imgSlider = document.querySelector(".imgSlider");
 const arrowRight = document.getElementById("nextBtn");
@@ -171,6 +177,7 @@ const getAttractionIdData = async function () {
   // 圖片
   const imgArr = attraction.image;
   imgSlider.src = imgArr[0];
+  preload(imgArr);
 
   // 指示器
   const imgArrLen = imgArr.length;
