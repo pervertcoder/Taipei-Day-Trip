@@ -30,7 +30,7 @@ const checkState = async function () {
     loginButton.removeEventListener("click", removeClass);
     loginButton.classList.add("logout");
     loginButton.textContent = "登出系統";
-    titleInside.textContent = `您好，${data.data.name}，待預訂的行程如下`;
+    titleInside.textContent = `您好，${data.data.name}，待預訂的行程如下：`;
     console.log(data.data);
   } else {
     console.log("未登入");

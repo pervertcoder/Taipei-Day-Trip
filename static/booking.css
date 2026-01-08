@@ -71,6 +71,7 @@
 
 .title__inside {
   width: 100%;
+  white-space: nowrap;
 }
 
 .emptyMessage {
@@ -88,18 +89,20 @@
 
 .schedule__info {
   width: 100%;
+  padding-bottom: 20px;
   display: flex;
 }
 
 .image__left {
-  width: 250px;
-  height: 200px;
+  width: 30%;
   margin-right: 10px;
 }
 
 .atImg {
   width: 100%;
   height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
 }
 
 .info__right {
@@ -124,6 +127,14 @@
   font-size: 16px;
   font-weight: 700;
   color: #666666;
+  white-space: nowrap;
+}
+
+.attraction__date--outside,
+.attraction__time--outside,
+.attraction__price--outside,
+.attraction__address--outside {
+  margin-bottom: 20px;
 }
 
 .attraction__date,
@@ -132,8 +143,17 @@
 .attraction__address {
   font-size: 16px;
   font-weight: 400;
-  margin-bottom: 20px;
   color: #666666;
+  line-height: 30px;
+}
+
+.attraction__address--outside {
+  display: flex;
+  align-items: baseline;
+}
+
+.attraction__address {
+  align-items: center;
 }
 
 .scheduleMessage {
@@ -174,6 +194,7 @@
 .credit__inside {
   width: 100%;
   margin-bottom: 25px;
+  line-height: 30px;
 }
 
 .accessH1,
@@ -261,4 +282,184 @@
 
 .state__off {
   display: none;
+}
+
+@media (max-width: 1225px) {
+  .container {
+    max-width: 1225px;
+    padding: 0;
+  }
+  .topbar {
+    width: 80%;
+  }
+  .topbar__left--title {
+    width: 50%;
+    margin-left: 0;
+    padding-left: 10px;
+  }
+  .topbar__container--right {
+    width: 50%;
+    margin: 0;
+  }
+  .homepage__title {
+    white-space: nowrap;
+  }
+  .topbar__right--booking {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .topbar__right--login {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .title {
+    width: 70%;
+  }
+  .attraction__info {
+    width: 70%;
+  }
+  #delete {
+    right: 1%;
+  }
+  .access {
+    width: 70%;
+  }
+  .credit {
+    width: 70%;
+  }
+  .payCheck {
+    width: 70%;
+  }
+}
+@media (max-width: 855px) {
+  .schedule__info {
+    flex-direction: column;
+    align-items: center;
+  }
+  .image__left {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .info__right {
+    width: 100%;
+    margin-top: 10px;
+  }
+  #delete {
+    bottom: 1%;
+  }
+}
+@media (max-width: 820px) {
+  #delete {
+    right: 1%;
+  }
+}
+@media (max-width: 540px) {
+  .title {
+    width: 75%;
+  }
+  .title__inside {
+    width: 100%;
+  }
+  .attraction__info {
+    width: 75%;
+  }
+  #delete {
+    right: 1%;
+  }
+  .access {
+    width: 75%;
+  }
+  .credit {
+    width: 75%;
+  }
+  .payCheck {
+    width: 75%;
+  }
+  .emptyMessage {
+    width: 75%;
+  }
+}
+@media (max-width: 420px) and (min-width: 381px) {
+  .container {
+    max-width: 420px;
+    padding: 0;
+  }
+  .topbar {
+    width: 95%;
+    justify-content: space-between;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+  .topbar__left--title {
+    width: 50%;
+    margin-left: 0;
+    padding-left: 10px;
+  }
+  .topbar__container--right {
+    justify-content: space-evenly;
+    width: 50%;
+    margin: 0;
+  }
+  .homepage__title {
+    white-space: nowrap;
+  }
+  .topbar__right--booking {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .topbar__right--login {
+    white-space: nowrap;
+    margin: 0;
+  }
+}
+@media (max-width: 380px) {
+  .container {
+    max-width: 380px;
+    padding: 0;
+  }
+  .topbar {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .topbar__left--title {
+    width: 50%;
+    margin-left: 0;
+  }
+  .topbar__container--right {
+    justify-content: space-evenly;
+    width: 50%;
+    margin: 0;
+  }
+  .homepage__title {
+    white-space: nowrap;
+  }
+  .topbar__right--booking {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .topbar__right--login {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .title {
+    width: 90%;
+  }
+  .attraction__info {
+    width: 90%;
+  }
+  #delete {
+    right: 1%;
+  }
+  .access {
+    width: 90%;
+  }
+  .credit {
+    width: 90%;
+  }
+  .payCheck {
+    width: 90%;
+  }
+  .emptyMessage {
+    width: 90%;
+  }
 }/*# sourceMappingURL=booking.css.map */
