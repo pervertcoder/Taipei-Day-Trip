@@ -209,6 +209,15 @@
   color: #666666;
 }
 
+.access__inside input,
+.credit__inside input {
+  width: 200px;
+  height: 38px;
+  border-radius: 5px;
+  border: #e8e8e8 solid 1px;
+  outline: none;
+}
+
 .credit p {
   display: inline-block;
   font-size: 16px;
@@ -446,6 +455,12 @@
   }
   .attraction__info {
     width: 90%;
+  }
+  .attraction__date--outside,
+  .attraction__time--outside,
+  .attraction__price--outside,
+  .attraction__address--outside {
+    margin-bottom: 5px;
   }
   #delete {
     right: 1%;
