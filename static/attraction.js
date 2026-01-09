@@ -1,10 +1,8 @@
 "use strict";
 
-const removeClass = function () {
-  coverlayer.classList.remove("coverlayer--off");
-};
-
-// 判斷token
+const scheduleBtn = document.querySelector(".topbar__right--booking");
+const scheduleStart = document.querySelector(".scheduleStart");
+// 檢查token
 const token = localStorage.getItem("token");
 const loginButton = document.querySelector(".loginButton");
 const checkState = async function () {
@@ -16,19 +14,105 @@ const checkState = async function () {
   });
 
   const data = await req.json();
-  // console.log(data);
 
   if (data?.data?.email) {
     loginButton.removeEventListener("click", removeClass);
     loginButton.classList.add("logout");
     loginButton.textContent = "登出系統";
+    scheduleBtn.addEventListener("click", () => {
+      window.location.href = "/booking";
+    });
+    scheduleStart.addEventListener("click", async () => {
+      // id
+      const hreF = window.location.href;
+      const hreFAr = hreF.split("/");
+      const Id = hreFAr[4];
+      //date
+      const date = document.getElementById("dateIp").value;
+      const selectRadio = document.querySelector(
+        'input[type="radio"][name="time"]:checked'
+      );
+
+      const label = document.querySelector(`label[for="${selectRadio.id}"]`);
+      const labelText = label.textContent.trim();
+      //price
+      const price = document.querySelector(".priceS").textContent;
+      const priceA = price.split(" ");
+      const priceNum = priceA[1];
+
+      // API
+      const rB = {
+        attractionId: Id,
+        date: date,
+        time: labelText,
+        price: priceNum,
+      };
+      if (!date) {
+        alert("請選擇日期");
+        return;
+      }
+      const url = "/api/booking";
+      const req = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(rB),
+      });
+      const response = await req.json();
+      console.log(response);
+      // 跳轉
+      window.location.href = "/booking";
+    });
     console.log(data.data);
   } else {
     console.log("未登入");
+    localStorage.removeItem("token");
+    popUp(scheduleBtn);
+    popUp(scheduleStart);
+    return;
   }
 };
 
 checkState();
+
+const removeClass = function () {
+  coverlayer.classList.remove("coverlayer--off");
+};
+
+// 彈出式視窗
+const loginRigist = document.querySelector(".pop");
+const closingBtn = document.querySelector(".cdia");
+const closingBtn2 = document.querySelector(".cdia2");
+const coverlayer = document.querySelector(".coverlayer");
+const popup1 = document.querySelector(".popup");
+const popup2 = document.querySelector(".popup2");
+const toLogin = document.getElementById("to_login");
+const toRegist = document.getElementById("to_regist");
+
+const popUp = function (btn) {
+  btn.addEventListener("click", removeClass);
+
+  closingBtn.addEventListener("click", () => {
+    coverlayer.classList.add("coverlayer--off");
+  });
+
+  closingBtn2.addEventListener("click", () => {
+    coverlayer.classList.add("coverlayer--off");
+  });
+
+  toLogin.addEventListener("click", () => {
+    popup1.classList.add("state--off");
+    popup2.classList.remove("state--off");
+  });
+
+  toRegist.addEventListener("click", () => {
+    popup2.classList.add("state--off");
+    popup1.classList.remove("state--off");
+  });
+};
+popUp(loginRigist);
 
 const attractionName = document.querySelector(".attractionName");
 const categoryMrt = document.querySelector(".categoryMrt");
@@ -54,12 +138,19 @@ const priceChanged = function () {
     price.textContent = "新台幣 2500 元";
   }
 };
+priceChanged();
 for (let i = 0; i < radioAll.length; i++) {
   radioAll[i].addEventListener("change", () => {
     priceChanged();
   });
 }
-
+// 圖片預載優化
+const preload = function (urls) {
+  urls.forEach((url) => {
+    const img = new Image();
+    img.src = url;
+  });
+};
 // API獲取+畫面渲染
 const imgSlider = document.querySelector(".imgSlider");
 const arrowRight = document.getElementById("nextBtn");
@@ -86,6 +177,7 @@ const getAttractionIdData = async function () {
   // 圖片
   const imgArr = attraction.image;
   imgSlider.src = imgArr[0];
+  preload(imgArr);
 
   // 指示器
   const imgArrLen = imgArr.length;
@@ -140,37 +232,6 @@ const getAttractionIdData = async function () {
 };
 
 getAttractionIdData();
-
-// 彈出式視窗
-
-const loginRigist = document.querySelector(".pop");
-const closingBtn = document.querySelector(".cdia");
-const closingBtn2 = document.querySelector(".cdia2");
-const coverlayer = document.querySelector(".coverlayer");
-const popup1 = document.querySelector(".popup");
-const popup2 = document.querySelector(".popup2");
-const toLogin = document.getElementById("to_login");
-const toRegist = document.getElementById("to_regist");
-
-loginRigist.addEventListener("click", removeClass);
-
-closingBtn.addEventListener("click", () => {
-  coverlayer.classList.add("coverlayer--off");
-});
-
-closingBtn2.addEventListener("click", () => {
-  coverlayer.classList.add("coverlayer--off");
-});
-
-toLogin.addEventListener("click", () => {
-  popup1.classList.add("state--off");
-  popup2.classList.remove("state--off");
-});
-
-toRegist.addEventListener("click", () => {
-  popup2.classList.add("state--off");
-  popup1.classList.remove("state--off");
-});
 
 // 會員系統註冊
 const error = document.querySelector(".eror");

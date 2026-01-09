@@ -51,7 +51,7 @@ def get_db_connect():
 def insert_register_data(n:str, m:str, p:str):
 	conn = get_db_connect()
 	mycursor = conn.cursor()
-	mycursor.execute('use web_attraction_mem')
+	mycursor.execute('use tourist_attraction')
 	sql = 'insert into web_attraction_memberinfo (name, email, password) values (%s, %s, %s)'
 	mycursor.execute(sql, (n, m, p))
 
@@ -62,7 +62,7 @@ def insert_register_data(n:str, m:str, p:str):
 def check_member(m:str) -> list:
 	conn = get_db_connect()
 	mycursor = conn.cursor()
-	mycursor.execute('use web_attraction_mem')
+	mycursor.execute('use tourist_attraction')
 	sql = 'select * from web_attraction_memberinfo where email = %s'
 	mycursor.execute(sql, (m,))
 	result = [x for x in mycursor]
@@ -177,7 +177,60 @@ def diff_page(page:int, category:str | None = None, keyword:str | None = None) -
 	final_result.append(int(result[0][1]))
 	return final_result
 
+# booking資料寫入
+def insert_booking_data(user_id:int, attraction_id:int, date:str, time:str, price:int):
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+	sql = 'insert into booking_data (user_id, attraction_id, date, time, price)value(%s, %s, %s, %s, %s)'
+	mycursor.execute(sql, (user_id, attraction_id, date, time, price))
 
+	conn.commit()
+	conn.close()
+	print('data inserted successfully')
+# 檢查booking資料
+def check_booking_data()->list:
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+	mycursor.execute('select * from booking_data')
+	result = [x for x in mycursor]
+	return result
+
+# 刪除資料表
+def delete_booking_data():
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+	mycursor.execute('truncate table booking_data')
+
+	conn.commit()
+	conn.close()
+
+# 拿booking資料
+def render_booking():
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+	mycursor.execute('''select
+		booking_data.id,
+		booking_data.attraction_id,
+		booking_data.user_id,
+		booking_data.date,
+		booking_data.time,
+		booking_data.price,
+		attraction_info.name_data,
+		attraction_info.address_data,
+		attraction_info.file_data
+		from booking_data
+		join attraction_info
+		on booking_data.attraction_id = attraction_info.id
+	''')
+	result = [x for x in mycursor]
+	return result
+a = render_booking()
+# print(a[0])
+# 捷運/分類資料回傳格式
 class DataResponse(BaseModel):
 	data: List[str]
 
@@ -192,36 +245,67 @@ class AttractionDataResponse(BaseModel):
 	nextPage: int | None
 	data: list
 
+# 成功狀態格式
 class stateResponse(BaseModel):
 	ok : bool
 
+# 註冊request格式
 class registDataRequest(BaseModel):
 	name : str
 	email : str
 	password : str
 
+# 登入request格式
 class loginDataRequest(BaseModel):
 	email :str
 	password : str
 
+#登入路由回傳格式
 class loginDataResponse(BaseModel):
 	token : str
-	# token_type : str = 'bearer'
 
+# 登入狀態驗證資料格式
 class userData(BaseModel):
 	id : int
 	name : str
 	email : str
 
+# 登入狀態驗證
 class loginDataCheck(BaseModel):
-	data:userData
+	data : userData
+
+# 訂單資料details
+class bookingData(BaseModel):
+	id : int
+	name : str
+	address : str
+	image : str
+	
+
+# 訂單資料
+class booking(BaseModel):
+	attraction : bookingData
+	date : str
+	time : str
+	price : int
+
+# 訂單
+class bookingResponse(BaseModel):
+	data : booking | None
+
+# 建立新的訂單
+class createBooking(BaseModel):
+	attractionId : int
+	date : str
+	time : str
+	price: int
 	
 
 app=FastAPI()
 
 security = HTTPBearer()
 
-@app.post('/api/user', response_model=stateResponse, responses={200 : {'description' : '註冊成功'}, 400:{'model' : ErrorResponse, 'description' : '註冊失敗，重複的 Email 或其他原因'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
+@app.post('/api/user', tags=['Users'], response_model=stateResponse, responses={200 : {'description' : '註冊成功'}, 400:{'model' : ErrorResponse, 'description' : '註冊失敗，重複的 Email 或其他原因'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
 async def register (request:registDataRequest):
 	try:
 		name = request.name
@@ -252,7 +336,7 @@ async def register (request:registDataRequest):
 			'message' : str(e)
 		})
 
-@app.put('/api/user/auth', response_model=loginDataResponse, responses={400:{'model' : ErrorResponse, 'description' : 'Email或密碼不正確'}})
+@app.put('/api/user/auth', tags=['Users'], response_model=loginDataResponse, responses={400:{'model' : ErrorResponse, 'description' : 'Email或密碼不正確'}})
 async def member_data (request:loginDataRequest):
 	try:
 		email = request.email
@@ -275,23 +359,26 @@ async def member_data (request:loginDataRequest):
 			'message' : '帳號或密碼發生錯誤'
 		})
 	
-@app.get('/api/user/auth', response_model=loginDataCheck)
+@app.get('/api/user/auth', tags=['Users'], response_model=loginDataCheck)
 async def check_mem (credentials: HTTPAuthorizationCredentials = Depends(security)):
-	# if authorization is None:
-	# 	return JSONResponse(status_code=401, content={
-	# 		'error' : True,
-	# 		'message' : '沒有會員權限'
-	# 	})
 	token = credentials.credentials.replace('Bearer ', '')
 	try:
 		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-		print(payload)
+		# print(payload)
 		check_DB = check_member(payload['email'])
+
+		if not check_DB:
+			return JSONResponse(status_code=401, content={
+                'error': True,
+                'message': '使用者不存在或已被刪除'
+            })
+
+		user = check_DB[0]
 		return {
 			'data' : {
-				'id' : check_DB[0][0],
-				'name' : check_DB[0][1],
-				'email' : check_DB[0][2]
+				'id' : user[0],
+				'name' : user[1],
+				'email' : user[2]
 			}
 		}
 	except jwt.ExpiredSignatureError:
@@ -305,7 +392,7 @@ async def check_mem (credentials: HTTPAuthorizationCredentials = Depends(securit
 			'message': 'Token 無效，請重新登入'
 		})
 
-@app.get('/api/mrts', response_model=DataResponse, responses={200 : {'description' : '正常運作'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
+@app.get('/api/mrts', tags=['MRT Station'], response_model=DataResponse, responses={200 : {'description' : '正常運作'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
 def get_mrts() -> DataResponse | ErrorResponse:
 	try:
 		mrt_data = get_mrt_data()
@@ -318,7 +405,7 @@ def get_mrts() -> DataResponse | ErrorResponse:
 			'message' : str(e)
 		})
 
-@app.get('/api/categories', response_model=DataResponse, responses={200 : {'description' : '正常運作'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
+@app.get('/api/categories', tags=['Attraction Category'], response_model=DataResponse, responses={200 : {'description' : '正常運作'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
 def get_cate() -> DataResponse | ErrorResponse:
 	try:
 		cate_data = get_cate_data()
@@ -332,7 +419,7 @@ def get_cate() -> DataResponse | ErrorResponse:
 		})
 	
 # 範例{400: {'model' : ErrorResponse, 'description' : '景點編號不正確'}}
-@app.get('/api/attraction/{attraction_id}', response_model=AttractionResponse, responses={200 : {'description' : '景點資料'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}, 400 : {'model' : ErrorResponse, 'description' : '景點編號不正確'}})
+@app.get('/api/attraction/{attraction_id}', tags=['Attraction'], response_model=AttractionResponse, responses={200 : {'description' : '景點資料'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}, 400 : {'model' : ErrorResponse, 'description' : '景點編號不正確'}})
 def get_attraction(attraction_id:int) -> AttractionResponse | ErrorResponse:
 	if attraction_id > 58:
 		return JSONResponse(status_code=400, content={'error' : True, 'message' : '查無資料'})
@@ -362,7 +449,7 @@ def get_attraction(attraction_id:int) -> AttractionResponse | ErrorResponse:
 		})
 	
 
-@app.get('/api/attractions', response_model=AttractionDataResponse, responses={500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
+@app.get('/api/attractions', tags=['Attraction'], response_model=AttractionDataResponse, responses={500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
 def get_specific_data(page:int, category:str | None = None, keyword:str | None = None) -> AttractionDataResponse | ErrorResponse:
 	try:
 		result = page_date(page, category, keyword)
@@ -402,7 +489,149 @@ def get_specific_data(page:int, category:str | None = None, keyword:str | None =
 			'message' : str(e)
 		})
 		
+@app.get('/api/booking', tags=['Booking'], response_model=bookingResponse, responses={403:{'model' : ErrorResponse, 'description' : '未登入系統，拒絕存取'}})
+def booking_fun(credentials: HTTPAuthorizationCredentials = Depends(security)):
+	token = credentials.credentials.replace('Bearer ', '')
+	try:
+		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+		# print(payload)
+		id = payload['id']
+		check_DB = check_member(payload['email'])
+
+		if not check_DB:
+			return JSONResponse(status_code=401, content={
+                'error': True,
+                'message': '使用者不存在或已被刪除'
+            })
+
+		booking = render_booking()
+		if booking == []:
+			return {
+				'data' : None
+			}
+		booking_data = list(booking)[0]
+		file_data = split_maker(booking_data[8])
+		file_data.pop(0)
+		file_data = [i for i in file_data if i != '無']
+		# print(file_data[0])
+		return {
+			'data' : {
+				'attraction' : {
+					'id' : booking_data[1],
+					'name': booking_data[6],
+					'address' : booking_data[7],
+					'image' : file_data[0]
+				},
+				'date' : booking_data[3],
+				'time' : booking_data[4],
+				'price' : booking_data[5]
+			}
+		}
+	except jwt.ExpiredSignatureError:
+		return JSONResponse(status_code=401, content={
+			'error': True,
+			'message': 'Token 已過期，請重新登入'
+		})
+	except jwt.InvalidTokenError:
+		return JSONResponse(status_code=401, content={
+			'error': True,
+			'message': 'Token 無效，請重新登入'
+		})
+
+@app.post('/api/booking', tags=['Booking'], response_model=stateResponse, responses={400:{'model' : ErrorResponse, 'description' : '建立失敗，輸入不正確或其他原因'}, 403:{'model' : ErrorResponse, 'description' : '未登入系統，拒絕存取'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
+def create_booking(request:createBooking, credentials: HTTPAuthorizationCredentials = Depends(security)):
+	token = credentials.credentials.replace('Bearer ', '')
+	try:
+		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+		# print(payload)
+		id = payload['id']
+		check_DB = check_member(payload['email'])
+
+		if not check_DB:
+			return JSONResponse(status_code=403, content={
+                'error': True,
+                'message': '使用者不存在或已被刪除'
+            })
+
+		user_id = id
+		attraction_id = int(request.attractionId)
+		date = request.date
+		time = request.time
+		price = int(request.price)
+		check_booking = check_booking_data()
+		if not check_booking:
+			insert_booking_data(user_id, attraction_id, date, time, price)
+		else:
+			delete_booking_data()
+			insert_booking_data(user_id, attraction_id, date, time, price)
+
+		return {
+			'ok' : True
+		}
+
+	except jwt.ExpiredSignatureError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 已過期，請重新登入'
+		})
+	except jwt.InvalidTokenError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 無效，請重新登入'
+		})
+	except Exception as e:
+		return JSONResponse(status_code=400, content={
+			'error' : True,
+			'message' : str(e)
+		})
+	except Exception as e:
+		return JSONResponse(status_code=500, content={
+			'error' : True,
+			'message' : str(e)
+		})
 	
+@app.delete('/api/booking', tags=['Booking'], response_model=stateResponse, responses={400:{'model' : ErrorResponse, 'description' : '建立失敗，輸入不正確或其他原因'}, 403:{'model' : ErrorResponse, 'description' : '未登入系統，拒絕存取'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
+def delete_booking(credentials: HTTPAuthorizationCredentials = Depends(security)):
+	token = credentials.credentials.replace('Bearer ', '')
+	try:
+		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+		# print(payload)
+		# id = payload['id']
+		check_DB = check_member(payload['email'])
+
+		if not check_DB:
+			return JSONResponse(status_code=403, content={
+                'error': True,
+                'message': '使用者不存在或已被刪除'
+            })
+
+		# check_booking = check_booking_data()
+		delete_booking_data()
+
+		return {
+			'ok' : True
+		}
+
+	except jwt.ExpiredSignatureError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 已過期，請重新登入'
+		})
+	except jwt.InvalidTokenError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 無效，請重新登入'
+		})
+	except Exception as e:
+		return JSONResponse(status_code=400, content={
+			'error' : True,
+			'message' : str(e)
+		})
+	except Exception as e:
+		return JSONResponse(status_code=500, content={
+			'error' : True,
+			'message' : str(e)
+		})
 	
 app.mount('/static', StaticFiles(directory='static'), name='static')
 # Static Pages (Never Modify Code in this Block)

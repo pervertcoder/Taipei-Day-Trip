@@ -1,0 +1,491 @@
+.container {
+  max-width: 1920px;
+  margin: 0 auto;
+  padding: 0 16px;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  // position: relative;
+}
+
+.topbar {
+  margin: 20px auto;
+  // width: 63.5%;
+  width: 1200px;
+}
+
+.topbar__container--whole {
+  display: flex;
+  // justify-content: space-between;
+}
+
+.topbar__left--title {
+  // margin-left: 5px;
+  width: 70%;
+}
+
+.homepage__title {
+  font-size: 30px;
+  font-weight: 700;
+  color: #448899;
+}
+
+.clickE {
+  cursor: pointer;
+}
+
+.topbar__container--right {
+  width: 30%;
+  // margin-right: 30px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.topbar__right--booking {
+  margin-right: 15px;
+}
+
+.topbar__title--font {
+  font-size: 16px;
+  font-weight: 500;
+  color: #666666;
+}
+
+.topbar__right--login {
+  margin-left: 15px;
+}
+
+.button_like {
+  border: solid white 1px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.seperateLine {
+  width: 1920px;
+  height: 10px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.title {
+  width: 55%;
+  margin-top: 40px;
+}
+
+.title__inside {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.emptyMessage {
+  width: 55%;
+  margin-top: 20px;
+}
+
+.attraction__info {
+  width: 55%;
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.schedule__info {
+  width: 100%;
+  padding-bottom: 20px;
+  display: flex;
+}
+
+.image__left {
+  width: 30%;
+  // height: 200px;
+  margin-right: 10px;
+}
+
+.atImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info__right {
+  width: 70%;
+  margin-left: 10px;
+}
+
+.info__right p {
+  display: inline-block;
+}
+.topLine--name,
+.attraction__title {
+  margin-top: 5px;
+  margin-bottom: 30px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #448899;
+}
+
+.topLine {
+  font-size: 16px;
+  font-weight: 700;
+  color: #666666;
+  white-space: nowrap;
+}
+
+.attraction__date--outside,
+.attraction__time--outside,
+.attraction__price--outside,
+.attraction__address--outside {
+  margin-bottom: 20px;
+}
+
+.attraction__date,
+.attraction__time,
+.attraction__price,
+.attraction__address {
+  font-size: 16px;
+  font-weight: 400;
+  color: #666666;
+  line-height: 30px;
+}
+
+.attraction__address--outside {
+  display: flex;
+  align-items: baseline;
+}
+
+.attraction__address {
+  align-items: center;
+}
+
+.scheduleMessage {
+  margin-top: 20px;
+}
+
+.scheduleState {
+  margin-top: 20px;
+}
+
+.font__style1 {
+  font-size: 19px;
+  font-weight: 700;
+  color: #666666;
+}
+
+.font__style2 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #666666;
+}
+
+.seperateLine__inside {
+  width: 1200px;
+  height: 10px;
+  border-bottom: 1px solid #e8e8e8;
+  margin-top: 20px;
+}
+
+.access,
+.credit,
+.payCheck {
+  width: 55%;
+  margin-top: 40px;
+}
+
+.access__inside,
+.credit__inside {
+  width: 100%;
+  margin-bottom: 25px;
+  line-height: 30px;
+}
+
+.accessH1,
+.creditH1 {
+  margin-bottom: 25px;
+}
+
+.access p {
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 400;
+  color: #666666;
+}
+
+.access__inside input,
+.credit__inside input {
+  width: 200px;
+  height: 38px;
+  border-radius: 5px;
+  border: #e8e8e8 solid 1px;
+  outline: none;
+}
+
+.credit p {
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 400;
+  color: #666666;
+}
+
+.payCheck {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+
+.priceShell {
+  margin-bottom: 15px;
+}
+
+.priceCheck {
+  font-size: 16px;
+  font-weight: 700;
+  color: #666666;
+}
+
+.comfirmBtn {
+  border: solid 1px #e8e8e8;
+  border-radius: 5px;
+  background-color: #448899;
+  color: white;
+  padding: 5px 20px;
+  font-size: 16px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.footer__structure {
+  max-width: 1920px;
+  margin-top: 60px;
+  background-color: #757575;
+}
+
+.footer__height--on {
+  height: 100vh;
+}
+
+.footer__height--off {
+  height: 104px;
+}
+
+.footer__layout {
+  display: flex;
+  justify-content: center;
+}
+
+.footer {
+  color: white;
+  padding-top: 20px;
+}
+
+#delete {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  right: 5%;
+  background-image: url(/static/images/deleteBtn.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  cursor: pointer;
+  border: white 1px solid;
+  background-color: white;
+}
+
+.state__off {
+  display: none;
+}
+
+@media (max-width: 1225px) {
+  .container {
+    max-width: 1225px;
+    padding: 0;
+  }
+  .topbar {
+    width: 80%;
+  }
+  .topbar__left--title {
+    width: 50%;
+    margin-left: 0;
+    padding-left: 10px;
+  }
+  .topbar__container--right {
+    width: 50%;
+    margin: 0;
+  }
+  .homepage__title {
+    white-space: nowrap;
+  }
+  .topbar__right--booking {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .topbar__right--login {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .title {
+    width: 70%;
+  }
+  .attraction__info {
+    width: 70%;
+  }
+  #delete {
+    right: 1%;
+  }
+  .access {
+    width: 70%;
+  }
+  .credit {
+    width: 70%;
+  }
+  .payCheck {
+    width: 70%;
+  }
+}
+
+@media (max-width: 855px) {
+  .schedule__info {
+    flex-direction: column;
+    align-items: center;
+  }
+  .image__left {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .info__right {
+    width: 100%;
+    margin-top: 10px;
+  }
+  #delete {
+    bottom: 1%;
+  }
+}
+
+@media (max-width: 820px) {
+  #delete {
+    right: 1%;
+  }
+}
+
+@media (max-width: 540px) {
+  .title {
+    width: 75%;
+  }
+  .title__inside {
+    width: 100%;
+    // display: flex;
+    // justify-content: center;
+  }
+  .attraction__info {
+    width: 75%;
+  }
+  #delete {
+    right: 1%;
+  }
+  .access {
+    width: 75%;
+  }
+  .credit {
+    width: 75%;
+  }
+  .payCheck {
+    width: 75%;
+  }
+  .emptyMessage {
+    width: 75%;
+  }
+}
+
+@media (max-width: 420px) and (min-width: 381px) {
+  .container {
+    max-width: 420px;
+    padding: 0;
+  }
+  .topbar {
+    width: 95%;
+    justify-content: space-between;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+  .topbar__left--title {
+    width: 50%;
+    margin-left: 0;
+    padding-left: 10px;
+  }
+  .topbar__container--right {
+    justify-content: space-evenly;
+    width: 50%;
+    margin: 0;
+  }
+  .homepage__title {
+    white-space: nowrap;
+  }
+  .topbar__right--booking {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .topbar__right--login {
+    white-space: nowrap;
+    margin: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .container {
+    max-width: 380px;
+    padding: 0;
+  }
+  .topbar {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .topbar__left--title {
+    width: 50%;
+    margin-left: 0;
+  }
+  .topbar__container--right {
+    justify-content: space-evenly;
+    width: 50%;
+    margin: 0;
+  }
+  .homepage__title {
+    white-space: nowrap;
+  }
+  .topbar__right--booking {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .topbar__right--login {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .title {
+    width: 90%;
+  }
+  .attraction__info {
+    width: 90%;
+  }
+  .attraction__date--outside,
+  .attraction__time--outside,
+  .attraction__price--outside,
+  .attraction__address--outside {
+    margin-bottom: 5px;
+  }
+  #delete {
+    right: 1%;
+  }
+  .access {
+    width: 90%;
+  }
+  .credit {
+    width: 90%;
+  }
+  .payCheck {
+    width: 90%;
+  }
+  .emptyMessage {
+    width: 90%;
+  }
+}

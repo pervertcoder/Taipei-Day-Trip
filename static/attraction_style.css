@@ -301,7 +301,7 @@ input[type=radio]:checked + label::after {
 .font {
   font-size: 16px;
   font-weight: 400;
-  line-height: 150%;
+  line-height: 200%;
   color: #666666;
 }
 
@@ -562,9 +562,9 @@ input[type=radio]:checked + label::after {
   display: none;
 }
 
-@media (max-width: 1199px) {
+@media (max-width: 1225px) {
   .container {
-    max-width: 1199px;
+    max-width: 1225px;
     padding: 0;
   }
   .topbar {
