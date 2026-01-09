@@ -55,29 +55,31 @@ const attraction_render = async function () {
   console.log(response);
 
   const emptyMessage = document.querySelector(".emptyMessage");
+
+  const footer = document.querySelector(".footer");
+  const data = response.data;
   const attractionInfo = document.querySelector(".attraction__info");
   const seperateLineInside = document.querySelectorAll(".seperateLine__inside");
   const access = document.querySelector(".access");
   const credit = document.querySelector(".credit");
   const payCheck = document.querySelector(".payCheck");
-  const footer = document.querySelector(".footer");
-  const data = response.data;
 
   if (data === null) {
     emptyMessage.classList.remove("state__off");
     const scheduleState = document.querySelector(".scheduleState");
     scheduleState.textContent = "目前沒有任何待預訂的行程";
-    attractionInfo.classList.add("state__off");
-    for (let i = 0; i < seperateLineInside.length; i++) {
-      seperateLineInside[i].classList.add("state__off");
-    }
-    access.classList.add("state__off");
-    credit.classList.add("state__off");
-    payCheck.classList.add("state__off");
     footer.classList.remove("footer__height--off");
     footer.classList.add("footer__height--on");
   } else {
     const attractionData = data.attraction;
+
+    attractionInfo.classList.remove("state__off");
+    for (let i = 0; i < seperateLineInside.length; i++) {
+      seperateLineInside[i].classList.remove("state__off");
+    }
+    access.classList.remove("state__off");
+    credit.classList.remove("state__off");
+    payCheck.classList.remove("state__off");
 
     const deleteBtn = document.getElementById("delete");
     const atImg = document.querySelector(".atImg");
