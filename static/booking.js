@@ -136,3 +136,17 @@ document.body.addEventListener("click", (e) => {
     window.location.reload();
   }
 });
+
+// 串接金流
+TPDirect.setupSDK(
+  166455,
+  "app_q3TDhCMqAZ8ym6YDOgArHrEJORKc25munVXfXsGHlnww9TPJpDJVXjpc0WzY",
+  "sandbox"
+);
+
+// TPDirect.card.setup();
+
+const comfirmBtn = document.querySelector(".comfirmBtn");
+comfirmBtn.addEventListener("click", () => {
+  TPDirect.card.getPrime();
+});

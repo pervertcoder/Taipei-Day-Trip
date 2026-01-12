@@ -274,7 +274,7 @@ class userData(BaseModel):
 class loginDataCheck(BaseModel):
 	data : userData
 
-# 訂單資料details
+# 行程資料details
 class bookingData(BaseModel):
 	id : int
 	name : str
@@ -282,24 +282,72 @@ class bookingData(BaseModel):
 	image : str
 	
 
-# 訂單資料
+# 行程資料
 class booking(BaseModel):
 	attraction : bookingData
 	date : str
 	time : str
 	price : int
 
-# 訂單
+# 行程
 class bookingResponse(BaseModel):
 	data : booking | None
 
-# 建立新的訂單
+# 建立新的行程
 class createBooking(BaseModel):
 	attractionId : int
 	date : str
 	time : str
-	price: int
+
+# 訂單資料details
+class orderData(BaseModel):
+	attraction : bookingData
+	date : str
+	time : str
+
+# 客戶資料
+class memContact(BaseModel):
+	name : str
+	email : str
+	phone : str
+
+# 訂單資料
+class orderInfo(BaseModel):
+	price : int
+	trip : orderData
+	contact : memContact
+
+# 建立新的訂單
+class createOrder(BaseModel):
+	prime : str
+	order : orderInfo
 	
+# 付款訊息
+class payMessage(BaseModel):
+	status : int
+	message : str
+
+# 訂單回應格式details
+class orderResDetail(BaseModel):
+	number : str
+	payment : payMessage
+
+# 訂單回應格式
+class orderResponse(BaseModel):
+	data : orderResDetail
+
+# 取得訂單資料格式詳細
+class getOrderDetail(BaseModel):
+	number : str
+	price : int
+	trip : orderData
+	contact : memContact
+	status : int
+
+
+# 取得訂單資料格式
+class getOrderResponse(BaseModel):
+	data : getOrderDetail
 
 app=FastAPI()
 
@@ -632,7 +680,15 @@ def delete_booking(credentials: HTTPAuthorizationCredentials = Depends(security)
 			'error' : True,
 			'message' : str(e)
 		})
-	
+
+@app.post('/api/orders', tags=['order'], response_model=orderResponse)
+def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials = Depends(security)):
+	pass
+
+@app.get('/api/orders/{orderNumber}', tags=['order'], response_model=getOrderResponse)
+def get_order(orderNumber:str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+	pass
+
 app.mount('/static', StaticFiles(directory='static'), name='static')
 # Static Pages (Never Modify Code in this Block)
 @app.get("/", include_in_schema=False)
