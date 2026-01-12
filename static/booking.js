@@ -31,7 +31,11 @@ const checkState = async function () {
     loginButton.classList.add("logout");
     loginButton.textContent = "登出系統";
     titleInside.textContent = `您好，${data.data.name}，待預訂的行程如下：`;
-    console.log(data.data);
+    // console.log(data.data);
+    return {
+      name: data.data.name,
+      email: data.data.email,
+    };
   } else {
     console.log("未登入");
     localStorage.removeItem("token");
@@ -39,6 +43,7 @@ const checkState = async function () {
   }
 };
 
+//驗證
 checkState();
 
 // 抓景點資料
@@ -111,6 +116,17 @@ const attraction_render = async function () {
   }
 };
 attraction_render();
+
+// 拿會員的資料
+const accessFun = async function () {
+  const answer = await checkState();
+  console.log(answer);
+  const accessName = document.getElementById("userName");
+  const accessMail = document.getElementById("email");
+  accessName.value = answer.name;
+  accessMail.value = answer.email;
+};
+accessFun();
 
 // 登出
 document.body.addEventListener("click", (e) => {
