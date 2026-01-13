@@ -45,7 +45,7 @@ const checkState = async function () {
 
 //驗證
 checkState();
-
+let aId = null;
 // 抓景點資料
 const attraction_render = async function () {
   const url = "/api/booking";
@@ -77,6 +77,7 @@ const attraction_render = async function () {
     footer.classList.add("footer__height--on");
   } else {
     const attractionData = data.attraction;
+    aId = attractionData.id;
 
     attractionInfo.classList.remove("state__off");
     for (let i = 0; i < seperateLineInside.length; i++) {
@@ -138,12 +139,15 @@ document.body.addEventListener("click", (e) => {
 });
 
 // 串接金流
+
+// 初始化設定
 TPDirect.setupSDK(
   166455,
   "app_q3TDhCMqAZ8ym6YDOgArHrEJORKc25munVXfXsGHlnww9TPJpDJVXjpc0WzY",
   "sandbox"
 );
 
+// input外觀設定
 let fields = {
   number: {
     element: "#card-number",
@@ -164,7 +168,6 @@ TPDirect.card.setup({
     // Style all elements
     input: {
       color: "gray",
-      border: "1px solid #e8e8e8e8",
     },
     // style valid state
     ".valid": {
@@ -178,9 +181,7 @@ TPDirect.card.setup({
     // Note that these apply to the iframe, not the root window.
     "@media screen and (max-width: 400px)": {
       input: {
-        color: "orange",
-        border: "1px solid #e8e8e8e8",
-        borderRadius: "5px",
+        color: "black",
       },
     },
   },
@@ -192,7 +193,143 @@ TPDirect.card.setup({
   },
 });
 
-const comfirmBtn = document.querySelector(".comfirmBtn");
-comfirmBtn.addEventListener("click", () => {
-  TPDirect.card.getPrime();
+// onUpdate監聽使用者輸入狀態
+const resetClass = function (a) {
+  a.classList.add("error__off");
+};
+
+TPDirect.card.onUpdate(function (update) {
+  // update.canGetPrime === true
+  // --> you can call TPDirect.card.getPrime()
+  if (update.canGetPrime) {
+    // Enable submit Button to get prime.
+    comfirmBtn.removeAttribute("disabled");
+  } else {
+    // Disable submit Button to get prime.
+    comfirmBtn.setAttribute("disabled", true);
+  }
+
+  // cardTypes = ['mastercard', 'visa', 'jcb', 'amex', 'unknown']
+  if (update.cardType === "visa") {
+    // Handle card type visa.
+  }
+
+  // number 欄位是錯誤的
+  if (update.status.number === 2) {
+    const tpfieldErrorCard = document.querySelector(".error__card");
+    resetClass(tpfieldErrorCard);
+    tpfieldErrorCard.classList.remove("error__off");
+  } else if (update.status.number === 0) {
+    const tpfieldErrorCard = document.querySelector(".error__card");
+    resetClass(tpfieldErrorCard);
+    tpfieldErrorCard.classList.add("error__off");
+  } else {
+    const tpfieldErrorCard = document.querySelector(".error__card");
+    resetClass(tpfieldErrorCard);
+    tpfieldErrorCard.classList.add("error__off");
+  }
+
+  if (update.status.expiry === 2) {
+    const tpfieldErrorExp = document.querySelector(".error__exp");
+    resetClass(tpfieldErrorExp);
+    tpfieldErrorExp.classList.remove("error__off");
+  } else if (update.status.expiry === 0) {
+    const tpfieldErrorExp = document.querySelector(".error__exp");
+    resetClass(tpfieldErrorExp);
+    tpfieldErrorExp.classList.add("error__off");
+  } else {
+    const tpfieldErrorExp = document.querySelector(".error__exp");
+    resetClass(tpfieldErrorExp);
+    tpfieldErrorExp.classList.add("error__off");
+  }
+
+  if (update.status.ccv === 2) {
+    const tpfieldErrorCCV = document.querySelector(".error__ccv");
+    resetClass(tpfieldErrorCCV);
+    tpfieldErrorCCV.classList.remove("error__off");
+  } else if (update.status.ccv === 0) {
+    const tpfieldErrorCCV = document.querySelector(".error__ccv");
+    resetClass(tpfieldErrorCCV);
+    tpfieldErrorCCV.classList.add("error__off");
+  } else {
+    const tpfieldErrorCCV = document.querySelector(".error__ccv");
+    resetClass(tpfieldErrorCCV);
+    tpfieldErrorCCV.classList.add("error__off");
+  }
 });
+
+// 呼叫getPrime函式，取得prime字串 + 呼叫API
+const comfirmBtn = document.querySelector(".comfirmBtn");
+comfirmBtn.addEventListener("click", async () => {
+  const phoneN = document.querySelector("#phone").value;
+  if (phoneN === "") {
+    alert("請輸入電話號碼");
+    return;
+  }
+  // 拿資料
+  const tappayStatus = TPDirect.card.getTappayFieldsStatus();
+
+  if (tappayStatus === false) {
+    alert("can not get prime");
+    return;
+  }
+
+  TPDirect.card.getPrime((result) => {
+    if (result.status !== 0) {
+      alert("get prime error " + result.msg);
+      return;
+    }
+    alert("get prime 成功，prime: " + result.card.prime);
+  });
+
+  const name = document.querySelector(".attraction__title").textContent;
+  const priceStr = document.querySelector(".attraction__price").textContent;
+  const priceS = priceStr.split(" ");
+  const address = document.querySelector(".attraction__address").value;
+  const imgA = document.querySelector(".atImg").src;
+  const date = document.querySelector(".attraction__date").textContent;
+  const time = document.querySelector(".attraction__time").textContent;
+  const userN = document.querySelector("#userName").value;
+  const emailN = document.querySelector("#email").value;
+
+  const payload = {
+    prime: result.card.prime,
+    order: {
+      price: priceS[1],
+      trip: {
+        attraction: {
+          id: aId,
+          name: name,
+          address: address,
+          image: imgA,
+        },
+        date: date,
+        time: time,
+      },
+      contact: {
+        name: userN,
+        email: emailN,
+        phone: phoneN,
+      },
+    },
+  };
+
+  const url = "";
+  const req = await fetch(url, {
+    method: "post",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const response = await req.json();
+  console.log(response);
+});
+
+// setTimeout(() => {
+//   const priceStr = document.querySelector(".attraction__price").textContent;
+//   const priceS = priceStr.split(" ");
+//   console.log(priceS[1]);
+// }, 500);

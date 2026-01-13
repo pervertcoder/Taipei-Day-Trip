@@ -204,10 +204,25 @@
 }
 
 .tpfield {
-  width: 50%;
+  width: 200px;
   height: 38px;
   line-height: 30px;
   margin-left: 10px;
+  border: 1px solid rgba(232, 232, 232, 0.9098039216);
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.success {
+  border: 1px solid black;
+}
+
+.fail {
+  border: 1px solid red;
+}
+
+.normal {
+  border: 1px solid rgba(232, 232, 232, 0.9098039216);
 }
 
 .accessH1 {
@@ -234,11 +249,24 @@
   outline: none;
 }
 
-.credit p {
+.card,
+.tme,
+.pass {
   display: inline-block;
   font-size: 16px;
   font-weight: 400;
   color: #666666;
+}
+
+.error__card,
+.error__exp,
+.error__ccv {
+  color: red;
+  margin-left: 10px;
+}
+
+.error__off {
+  display: none;
 }
 
 .payCheck {
@@ -266,6 +294,13 @@
   font-size: 16px;
   font-weight: 300;
   cursor: pointer;
+}
+
+.comfirmBtn:disabled {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .footer__structure {

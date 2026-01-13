@@ -298,6 +298,7 @@ class createBooking(BaseModel):
 	attractionId : int
 	date : str
 	time : str
+	price : int
 
 # 訂單資料details
 class orderData(BaseModel):
