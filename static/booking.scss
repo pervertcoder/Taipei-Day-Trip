@@ -194,22 +194,32 @@
   margin-top: 40px;
 }
 
-.access__inside,
-.credit__inside {
+.access__inside {
   width: 100%;
   margin-bottom: 25px;
   line-height: 30px;
+}
+
+.credit__inside {
+  width: 50%;
+  margin-bottom: 50px;
+  display: flex;
+  align-items: center;
 }
 
 .tpfield {
-  width: 100%;
-  margin-bottom: 25px;
+  width: 50%;
+  height: 38px;
   line-height: 30px;
+  margin-left: 10px;
 }
 
-.accessH1,
-.creditH1 {
+.accessH1 {
   margin-bottom: 25px;
+}
+
+.creditH1 {
+  margin-bottom: 40px;
 }
 
 .access p {
