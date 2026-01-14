@@ -138,6 +138,29 @@ document.body.addEventListener("click", (e) => {
   }
 });
 
+// 處理時間
+const dateDeal = function (y, a, b) {
+  let A = String(a);
+  let B = String(b);
+  let Y = String(y);
+  if (A.length === 1) {
+    A = "-" + "0" + A;
+  } else {
+    A = "-" + A;
+  }
+  if (B.length === 1) {
+    B = "-" + "0" + B;
+  } else {
+    B = "-" + B;
+  }
+  return Y + A + B;
+};
+const dateTest = new Date();
+const dateY = dateTest.getFullYear();
+const dateM = dateTest.getMonth() + 1;
+const dateD = dateTest.getDate();
+const currentDate = dateDeal(dateY, dateM, dateD);
+
 // 串接金流
 
 // 初始化設定
@@ -266,6 +289,7 @@ comfirmBtn.addEventListener("click", async () => {
     alert("請輸入電話號碼");
     return;
   }
+
   // 拿資料
   const tappayStatus = TPDirect.card.getTappayFieldsStatus();
 
@@ -274,58 +298,61 @@ comfirmBtn.addEventListener("click", async () => {
     return;
   }
 
-  TPDirect.card.getPrime((result) => {
+  TPDirect.card.getPrime(async (result) => {
+    const name = document.querySelector(".attraction__title").textContent;
+    const priceStr = document.querySelector(".attraction__price").textContent;
+    const priceS = priceStr.split(" ");
+    const address = document.querySelector(".attraction__address").textContent;
+    const imgA = document.querySelector(".atImg").src;
+    // const date = document.querySelector(".attraction__date").textContent;
+    const time = document.querySelector(".attraction__time").textContent;
+    const userN = document.querySelector("#userName").value;
+    const emailN = document.querySelector("#email").value;
     if (result.status !== 0) {
       alert("get prime error " + result.msg);
       return;
     }
+    const cardPrime = result.card.prime;
     alert("get prime 成功，prime: " + result.card.prime);
-  });
 
-  const name = document.querySelector(".attraction__title").textContent;
-  const priceStr = document.querySelector(".attraction__price").textContent;
-  const priceS = priceStr.split(" ");
-  const address = document.querySelector(".attraction__address").value;
-  const imgA = document.querySelector(".atImg").src;
-  const date = document.querySelector(".attraction__date").textContent;
-  const time = document.querySelector(".attraction__time").textContent;
-  const userN = document.querySelector("#userName").value;
-  const emailN = document.querySelector("#email").value;
-
-  const payload = {
-    prime: result.card.prime,
-    order: {
-      price: priceS[1],
-      trip: {
-        attraction: {
-          id: aId,
-          name: name,
-          address: address,
-          image: imgA,
+    const payload = {
+      prime: cardPrime,
+      order: {
+        price: priceS[1],
+        trip: {
+          attraction: {
+            id: aId,
+            name: name,
+            address: address,
+            image: imgA,
+          },
+          date: currentDate,
+          time: time,
         },
-        date: date,
-        time: time,
+        contact: {
+          name: userN,
+          email: emailN,
+          phone: phoneN,
+        },
       },
-      contact: {
-        name: userN,
-        email: emailN,
-        phone: phoneN,
-      },
-    },
-  };
+    };
 
-  const url = "";
-  const req = await fetch(url, {
-    method: "post",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+    const url = "/api/orders";
+    const req = await fetch(url, {
+      method: "post",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const response = await req.json();
+    console.log(response);
+
+    // 跳轉至thankyou頁面
+    window.location.reload();
   });
-
-  const response = await req.json();
-  console.log(response);
 });
 
 // setTimeout(() => {

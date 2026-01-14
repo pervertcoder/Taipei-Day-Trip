@@ -101,7 +101,18 @@ create table order_data(
     date varchar(50) not null,
     time varchar(50) not null,
     price int not null,    
-    status varchar(10) not null,
+    status ENUM('unpaid', 'paid') not null,
     foreign key (user_id) references web_attraction_memberinfo(id),
     foreign key (attraction_id) references attraction_info(id)
 )
+
+create table payment_data(
+    id int primary key auto_increment,
+    booking_id int not null,
+    amount int not null,
+    pay_time datetime default current_timestamp,
+    foreign key (booking_id) references order_data(id)
+)
+
+delete from order_data where id = 1;
+alter table order_data auto_increment = 1;

@@ -14,7 +14,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import requests
 
 load_dotenv()
-load_dotenv('.env_jwt')
+# load_dotenv('.env_jwt')
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = 'HS256'
 
@@ -265,7 +265,7 @@ def write_order_data(
 	time,
 	price,
 	status)values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-	)'''
+	'''
 	mycursor.execute(sql, (order_num,
 		user_id,
 		user_name,
@@ -284,14 +284,41 @@ def write_order_data(
 	print('data insert successfully')
 
 # 拿auto_increment
-def get_auto_increment():
+def get_auto_increment() -> int:
 	conn = get_db_connect()
 	mycursor = conn.cursor()
 	mycursor.execute('use tourist_attraction')
 	mycursor.execute('select max(id) from order_data')
 
 	result = [x for x in mycursor]
-	return result
+	final_result = result[0]
+	return final_result[0]
+# print(get_auto_increment())
+
+# 寫入已付款資料
+def write_payment(booking_id, amount):
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+
+	sql = 'insert into payment_data(booking_id, amount)values(%s, %s)'
+	mycursor.execute(sql, (booking_id, amount))
+
+	conn.commit()
+	conn.close()
+	print('data insert successfully')
+
+# 更新訂單狀態
+def update_status():
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+
+	mycursor.execute("update order_data set status='paid'")
+
+	conn.commit()
+	conn.close()
+	print('update successfully')
 
 # 捷運/分類資料回傳格式
 class DataResponse(BaseModel):
@@ -766,8 +793,8 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 		attraction_name = attraction_data.name
 		attraction_address = attraction_data.address
 		attraction_image = attraction_data.image
-		date = order_data.date
-		time = order_data.time
+		date = order_data.trip.date
+		time = order_data.trip.time
 		user_data = request.order.contact
 		user_id = id
 		user_name = user_data.name
@@ -776,13 +803,14 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 
 		status = 'unpaid'
 		order_num = None
+		PARTNER_KEY = os.getenv('PARTNER_KEY')
 
 		# 確認訂單編號
 		order_num_son = get_auto_increment()
-		if order_num_son == []:
-			order_num = date + 0 + 1
+		if order_num_son == None:
+			order_num = date + '0' + '1'
 		else:
-			order_num = date + 0 + order_num_son
+			order_num = date + '0' + str(order_num_son + 1)
 
 		# 寫入資料庫
 		write_order_data(
@@ -802,10 +830,11 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 			)
 		credit_load = {
   			"prime": prime,
-  			"partner_key": '',
-  			"merchant_id": "merchantA",
-  			"details":"TapPay Test",
+  			"partner_key": PARTNER_KEY,
+  			"merchant_id": "pertvertcasher_CTBC",
   			"amount": price,
+			'order_number' : order_num,
+  			"details":"TapPay Test",
   			"cardholder": {
       			"phone_number": user_phone,
       			"name": user_name,
@@ -813,7 +842,42 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
   				},
   			"remember": False
 		}
-		pass
+		url = 'https://sandbox.tappaysdk.com/tpc/payment/pay-by-prime'
+		headers = {
+			'Content-Type': 'application/json',
+			'x-api-key' : PARTNER_KEY
+			}
+
+		response = requests.post(url, json=credit_load, headers=headers)
+
+		# 寫入已付款資料
+		if response.status_code != 200:
+			return {
+				'error' : True,
+				'message' : 'taypay HTTP error'
+			}
+		taypay_result = response.json()
+		print(taypay_result)
+		if taypay_result['status'] == 0:
+			update_status()
+			payment_id = taypay_result['order_number'][-2] + taypay_result['order_number'][-1]
+			write_payment(payment_id, taypay_result['amount'])
+			delete_booking_data()
+			return {
+				'data' : {
+					'number' : taypay_result['order_number'],
+					'payment' : {
+						'status' : taypay_result['status'],
+						'message' : '付款成功'
+					}
+				}
+			}
+		else:
+			return JSONResponse(status_code=400, content={
+			'error' : True,
+			'message' : str(e)
+		})
+			
 	except jwt.ExpiredSignatureError:
 		return JSONResponse(status_code=403, content={
 			'error': True,
@@ -836,7 +900,7 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 		})
 
 
-@app.get('/api/orders/{orderNumber}', tags=['order'], response_model=getOrderResponse, responses={400:{'model' : ErrorResponse, 'description' : '建立失敗，輸入不正確或其他原因'}, 403:{'model' : ErrorResponse, 'description' : '未登入系統，拒絕存取'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
+@app.get('/api/orders/{orderNumber}', tags=['order'], response_model=getOrderResponse, responses={403:{'model' : ErrorResponse, 'description' : '未登入系統，拒絕存取'}})
 def get_order(orderNumber:str, credentials: HTTPAuthorizationCredentials = Depends(security)):
 	token = credentials.credentials.replace('Bearer ', '')
 	try:
@@ -859,16 +923,7 @@ def get_order(orderNumber:str, credentials: HTTPAuthorizationCredentials = Depen
 			'error': True,
 			'message': 'Token 無效，請重新登入'
 		})
-	except Exception as e:
-		return JSONResponse(status_code=400, content={
-			'error' : True,
-			'message' : str(e)
-		})
-	except Exception as e:
-		return JSONResponse(status_code=500, content={
-			'error' : True,
-			'message' : str(e)
-		})
+	
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
 # Static Pages (Never Modify Code in this Block)
