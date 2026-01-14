@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 import time
 from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import requests
 
 load_dotenv()
 load_dotenv('.env_jwt')
@@ -230,6 +231,68 @@ def render_booking():
 	return result
 a = render_booking()
 # print(a[0])
+
+# 寫入order資料
+def write_order_data(
+		order_num:int,
+		user_id:int,
+		user_name:str,
+		user_phone:str,
+		user_email:str,
+		attraction_id:int,
+		attraction_name:str,
+		attraction_address:str,
+		attraction_image:str,
+		date:str,
+		time:str,
+		price:int,
+		status:str
+):
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+	sql = '''insert into order_data(
+	order_num,
+	user_id,
+	user_name,
+	user_phone,
+	user_email,
+	attraction_id,
+	attraction_name, 
+	attraction_address,
+	image,
+	date,
+	time,
+	price,
+	status)values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+	)'''
+	mycursor.execute(sql, (order_num,
+		user_id,
+		user_name,
+		user_phone,
+		user_email,
+		attraction_id,
+		attraction_name,
+		attraction_address,
+		attraction_image,
+		date,
+		time,
+		price,
+		status))
+	conn.commit()
+	conn.close()
+	print('data insert successfully')
+
+# 拿auto_increment
+def get_auto_increment():
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+	mycursor.execute('select max(id) from order_data')
+
+	result = [x for x in mycursor]
+	return result
+
 # 捷運/分類資料回傳格式
 class DataResponse(BaseModel):
 	data: List[str]
@@ -682,13 +745,130 @@ def delete_booking(credentials: HTTPAuthorizationCredentials = Depends(security)
 			'message' : str(e)
 		})
 
-@app.post('/api/orders', tags=['order'], response_model=orderResponse)
+@app.post('/api/orders', tags=['order'], response_model=orderResponse, responses={400:{'model' : ErrorResponse, 'description' : '建立失敗，輸入不正確或其他原因'}, 403:{'model' : ErrorResponse, 'description' : '未登入系統，拒絕存取'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
 def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials = Depends(security)):
-	pass
+	token = credentials.credentials.replace('Bearer ', '')
+	try:
+		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+		id = payload['id']
+		check_DB = check_member(payload['email'])
 
-@app.get('/api/orders/{orderNumber}', tags=['order'], response_model=getOrderResponse)
+		if not check_DB:
+			return JSONResponse(status_code=403, content={
+                'error': True,
+                'message': '使用者不存在或已被刪除'
+            })
+		prime = request.prime
+		order_data = request.order
+		price = order_data.price
+		attraction_data = request.order.trip.attraction
+		attraction_id = attraction_data.id
+		attraction_name = attraction_data.name
+		attraction_address = attraction_data.address
+		attraction_image = attraction_data.image
+		date = order_data.date
+		time = order_data.time
+		user_data = request.order.contact
+		user_id = id
+		user_name = user_data.name
+		user_email = user_data.email
+		user_phone = user_data.phone
+
+		status = 'unpaid'
+		order_num = None
+
+		# 確認訂單編號
+		order_num_son = get_auto_increment()
+		if order_num_son == []:
+			order_num = date + 0 + 1
+		else:
+			order_num = date + 0 + order_num_son
+
+		# 寫入資料庫
+		write_order_data(
+			order_num, 
+			user_id, 
+			user_name, 
+			user_phone,
+			user_email,
+			attraction_id, 
+			attraction_name, 
+			attraction_address, 
+			attraction_image,
+			date,
+			time,
+			price,
+			status
+			)
+		credit_load = {
+  			"prime": prime,
+  			"partner_key": '',
+  			"merchant_id": "merchantA",
+  			"details":"TapPay Test",
+  			"amount": price,
+  			"cardholder": {
+      			"phone_number": user_phone,
+      			"name": user_name,
+      			"email": user_email,
+  				},
+  			"remember": False
+		}
+		pass
+	except jwt.ExpiredSignatureError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 已過期，請重新登入'
+		})
+	except jwt.InvalidTokenError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 無效，請重新登入'
+		})
+	except Exception as e:
+		return JSONResponse(status_code=400, content={
+			'error' : True,
+			'message' : str(e)
+		})
+	except Exception as e:
+		return JSONResponse(status_code=500, content={
+			'error' : True,
+			'message' : str(e)
+		})
+
+
+@app.get('/api/orders/{orderNumber}', tags=['order'], response_model=getOrderResponse, responses={400:{'model' : ErrorResponse, 'description' : '建立失敗，輸入不正確或其他原因'}, 403:{'model' : ErrorResponse, 'description' : '未登入系統，拒絕存取'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
 def get_order(orderNumber:str, credentials: HTTPAuthorizationCredentials = Depends(security)):
-	pass
+	token = credentials.credentials.replace('Bearer ', '')
+	try:
+		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+		check_DB = check_member(payload['email'])
+
+		if not check_DB:
+			return JSONResponse(status_code=403, content={
+                'error': True,
+                'message': '使用者不存在或已被刪除'
+            })
+		pass
+	except jwt.ExpiredSignatureError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 已過期，請重新登入'
+		})
+	except jwt.InvalidTokenError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 無效，請重新登入'
+		})
+	except Exception as e:
+		return JSONResponse(status_code=400, content={
+			'error' : True,
+			'message' : str(e)
+		})
+	except Exception as e:
+		return JSONResponse(status_code=500, content={
+			'error' : True,
+			'message' : str(e)
+		})
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
 # Static Pages (Never Modify Code in this Block)

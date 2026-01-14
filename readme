@@ -86,3 +86,22 @@ attraction_info.file_data
 from booking_data
 join attraction_info
 on booking_data.attraction_id = attraction_info.id
+
+create table order_data(
+    id int primary key auto_increment,
+    order_num varchar(20) not null,
+    user_id int not null,
+    user_name varchar(100) not null,
+    user_phone varchar(20) not null,
+    user_email varchar(100) not null,
+    attraction_id int not null,
+    attraction_name varchar(100) not null,
+    attraction_address varchar(100) not null,
+    image text not null,
+    date varchar(50) not null,
+    time varchar(50) not null,
+    price int not null,    
+    status varchar(10) not null,
+    foreign key (user_id) references web_attraction_memberinfo(id),
+    foreign key (attraction_id) references attraction_info(id)
+)
