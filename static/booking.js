@@ -354,9 +354,3 @@ comfirmBtn.addEventListener("click", async () => {
     window.location.reload();
   });
 });
-
-// setTimeout(() => {
-//   const priceStr = document.querySelector(".attraction__price").textContent;
-//   const priceS = priceStr.split(" ");
-//   console.log(priceS[1]);
-// }, 500);

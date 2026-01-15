@@ -14,7 +14,6 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import requests
 
 load_dotenv()
-# load_dotenv('.env_jwt')
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = 'HS256'
 
