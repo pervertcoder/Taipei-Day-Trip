@@ -8,7 +8,6 @@ from pydantic import BaseModel
 from typing import List
 import jwt
 from datetime import datetime, timedelta, timezone
-import time
 from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import requests
@@ -319,6 +318,21 @@ def update_status():
 	conn.close()
 	print('update successfully')
 
+# 拿取付款完成訂單資料
+def get_order_complete(orderN:str, user_id:int) -> tuple:
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+
+	sql = "select * from order_data where status = 'paid' and order_num = %s and user_id = %s"
+	mycursor.execute(sql, (orderN, user_id))
+
+	result = [x for x in mycursor]
+	return result
+
+c = get_order_complete('2026-01-1501', 6)
+# print(c)
+
 # 捷運/分類資料回傳格式
 class DataResponse(BaseModel):
 	data: List[str]
@@ -437,7 +451,7 @@ class getOrderDetail(BaseModel):
 
 # 取得訂單資料格式
 class getOrderResponse(BaseModel):
-	data : getOrderDetail
+	data : getOrderDetail | None
 
 app=FastAPI()
 
@@ -632,8 +646,8 @@ def booking_fun(credentials: HTTPAuthorizationCredentials = Depends(security)):
 	token = credentials.credentials.replace('Bearer ', '')
 	try:
 		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-		# print(payload)
 		id = payload['id']
+		# print(id)
 		check_DB = check_member(payload['email'])
 
 		if not check_DB:
@@ -804,12 +818,18 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 		order_num = None
 		PARTNER_KEY = os.getenv('PARTNER_KEY')
 
-		# 確認訂單編號
+		
+		# 確認日期格式
+		time = datetime.now(timezone.utc)
+		edit_time = str(time)
+		current_date = edit_time[0:10]
+		# print(current_date)
 		order_num_son = get_auto_increment()
+		
 		if order_num_son == None:
-			order_num = date + '0' + '1'
+			order_num = current_date + '0' + '1'
 		else:
-			order_num = date + '0' + str(order_num_son + 1)
+			order_num = current_date + '0' + str(order_num_son + 1)
 
 		# 寫入資料庫
 		write_order_data(
@@ -899,11 +919,13 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 		})
 
 
-@app.get('/api/orders/{orderNumber}', tags=['order'], response_model=getOrderResponse, responses={403:{'model' : ErrorResponse, 'description' : '未登入系統，拒絕存取'}})
-def get_order(orderNumber:str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+@app.get('/api/orders/{number}', tags=['order'], response_model=getOrderResponse, responses={403:{'model' : ErrorResponse, 'description' : '未登入系統，拒絕存取'}})
+def get_order(number:str, credentials: HTTPAuthorizationCredentials = Depends(security)):
 	token = credentials.credentials.replace('Bearer ', '')
 	try:
 		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+		id = payload['id']
+		# print(id)
 		check_DB = check_member(payload['email'])
 
 		if not check_DB:
@@ -911,7 +933,44 @@ def get_order(orderNumber:str, credentials: HTTPAuthorizationCredentials = Depen
                 'error': True,
                 'message': '使用者不存在或已被刪除'
             })
-		pass
+		
+		render_data = get_order_complete(number, id)
+		if render_data == []:
+			return {
+				'data' : None
+			}
+		else:
+			render_data_arr = []
+			for i in render_data[0]:
+				render_data_arr.append(i)
+
+			if render_data_arr[13] == 'paid':
+				render_data_arr[13] = 1
+			
+			return {
+				"data": {
+					"number": render_data_arr[1],
+					"price": render_data_arr[12],
+					"trip": {
+						"attraction": {
+							"id": render_data_arr[6],
+							"name": render_data_arr[7],
+							"address": render_data_arr[8],
+							"image": render_data_arr[9]
+							},
+						"date": render_data_arr[10],
+						"time": render_data_arr[11]
+					},
+					"contact": {
+					"name": render_data_arr[3],
+					"email": str(render_data_arr[2]),
+					"phone": render_data_arr[4]
+					},
+					"status": render_data_arr[13]
+				}
+			}
+		
+	
 	except jwt.ExpiredSignatureError:
 		return JSONResponse(status_code=403, content={
 			'error': True,

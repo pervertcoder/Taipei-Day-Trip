@@ -59,8 +59,19 @@
 }
 
 .container {
-  width: 1200px;
-  height: 1000px;
+  max-width: 1200px;
+  height: 750px;
+}
+
+.message {
+  width: 100%;
+  margin-top: 100px;
+}
+
+.message p {
+  font-size: 36px;
+  font-weight: 400;
+  color: #666666;
 }
 
 .footer__structure {
@@ -85,4 +96,64 @@
 .footer {
   color: white;
   padding-top: 20px;
+}
+
+@media (max-width: 1225px) {
+  .container {
+    max-width: 1225px;
+    padding: 0;
+  }
+  .topbar {
+    width: 80%;
+  }
+  .topbar__left--title {
+    width: 50%;
+    margin-left: 0;
+    padding-left: 10px;
+  }
+  .topbar__container--right {
+    width: 50%;
+    margin: 0;
+  }
+  .homepage__title {
+    white-space: nowrap;
+  }
+  .topbar__right--booking {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .topbar__right--login {
+    white-space: nowrap;
+    margin: 0;
+  }
+}
+@media (max-width: 460px) {
+  .container {
+    max-width: 460px;
+    padding: 0;
+  }
+  .topbar {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .topbar__left--title {
+    width: 50%;
+    margin-left: 0;
+  }
+  .topbar__container--right {
+    justify-content: space-evenly;
+    width: 50%;
+    margin: 0;
+  }
+  .homepage__title {
+    white-space: nowrap;
+  }
+  .topbar__right--booking {
+    white-space: nowrap;
+    margin: 0;
+  }
+  .topbar__right--login {
+    white-space: nowrap;
+    margin: 0;
+  }
 }/*# sourceMappingURL=thankyou.css.map */

@@ -45,8 +45,33 @@ const checkState = async function () {
   }
 };
 
-//驗證
+// 驗證
 checkState();
+
+// 拿資料
+const numberL = window.location.href;
+const numberArr = numberL.split("=");
+const number = numberArr[1];
+const message = document.querySelector(".message__inside");
+const orderComplete = async function () {
+  const url = `/api/orders/${number}`;
+  const req = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const response = await req.json();
+  console.log(response);
+
+  if (response.data !== null) {
+    message.textContent = `訂單：${response.data.number}，已完成付款`;
+  } else {
+    message.textContent = "查無付款完成訂單";
+  }
+};
+
+orderComplete();
 
 // 登出
 document.body.addEventListener("click", (e) => {

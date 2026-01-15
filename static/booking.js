@@ -304,7 +304,7 @@ comfirmBtn.addEventListener("click", async () => {
     const priceS = priceStr.split(" ");
     const address = document.querySelector(".attraction__address").textContent;
     const imgA = document.querySelector(".atImg").src;
-    // const date = document.querySelector(".attraction__date").textContent;
+    const date = document.querySelector(".attraction__date").textContent;
     const time = document.querySelector(".attraction__time").textContent;
     const userN = document.querySelector("#userName").value;
     const emailN = document.querySelector("#email").value;
@@ -326,7 +326,7 @@ comfirmBtn.addEventListener("click", async () => {
             address: address,
             image: imgA,
           },
-          date: currentDate,
+          date: date,
           time: time,
         },
         contact: {
@@ -349,8 +349,9 @@ comfirmBtn.addEventListener("click", async () => {
 
     const response = await req.json();
     console.log(response);
+    // console.log(response.data.number);
 
     // 跳轉至thankyou頁面
-    window.location.reload();
+    window.location.href = `/thankyou?number=${response.data.number}`;
   });
 });
