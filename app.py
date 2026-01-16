@@ -8,12 +8,11 @@ from pydantic import BaseModel
 from typing import List
 import jwt
 from datetime import datetime, timedelta, timezone
-import time
 from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import requests
 
 load_dotenv()
-load_dotenv('.env_jwt')
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = 'HS256'
 
@@ -230,6 +229,110 @@ def render_booking():
 	return result
 a = render_booking()
 # print(a[0])
+
+# 寫入order資料
+def write_order_data(
+		order_num:int,
+		user_id:int,
+		user_name:str,
+		user_phone:str,
+		user_email:str,
+		attraction_id:int,
+		attraction_name:str,
+		attraction_address:str,
+		attraction_image:str,
+		date:str,
+		time:str,
+		price:int,
+		status:str
+):
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+	sql = '''insert into order_data(
+	order_num,
+	user_id,
+	user_name,
+	user_phone,
+	user_email,
+	attraction_id,
+	attraction_name, 
+	attraction_address,
+	image,
+	date,
+	time,
+	price,
+	status)values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+	'''
+	mycursor.execute(sql, (order_num,
+		user_id,
+		user_name,
+		user_phone,
+		user_email,
+		attraction_id,
+		attraction_name,
+		attraction_address,
+		attraction_image,
+		date,
+		time,
+		price,
+		status))
+	conn.commit()
+	conn.close()
+	print('data insert successfully')
+
+# 拿auto_increment
+def get_auto_increment() -> int:
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+	mycursor.execute('select max(id) from order_data')
+
+	result = [x for x in mycursor]
+	final_result = result[0]
+	return final_result[0]
+# print(get_auto_increment())
+
+# 寫入已付款資料
+def write_payment(booking_id, amount):
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+
+	sql = 'insert into payment_data(booking_id, amount)values(%s, %s)'
+	mycursor.execute(sql, (booking_id, amount))
+
+	conn.commit()
+	conn.close()
+	print('data insert successfully')
+
+# 更新訂單狀態
+def update_status():
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+
+	mycursor.execute("update order_data set status='paid'")
+
+	conn.commit()
+	conn.close()
+	print('update successfully')
+
+# 拿取付款完成訂單資料
+def get_order_complete(orderN:str, user_id:int) -> tuple:
+	conn = get_db_connect()
+	mycursor = conn.cursor()
+	mycursor.execute('use tourist_attraction')
+
+	sql = "select * from order_data where status = 'paid' and order_num = %s and user_id = %s"
+	mycursor.execute(sql, (orderN, user_id))
+
+	result = [x for x in mycursor]
+	return result
+
+c = get_order_complete('2026-01-1501', 6)
+# print(c)
+
 # 捷運/分類資料回傳格式
 class DataResponse(BaseModel):
 	data: List[str]
@@ -274,7 +377,7 @@ class userData(BaseModel):
 class loginDataCheck(BaseModel):
 	data : userData
 
-# 訂單資料details
+# 行程資料details
 class bookingData(BaseModel):
 	id : int
 	name : str
@@ -282,24 +385,73 @@ class bookingData(BaseModel):
 	image : str
 	
 
-# 訂單資料
+# 行程資料
 class booking(BaseModel):
 	attraction : bookingData
 	date : str
 	time : str
 	price : int
 
-# 訂單
+# 行程
 class bookingResponse(BaseModel):
 	data : booking | None
 
-# 建立新的訂單
+# 建立新的行程
 class createBooking(BaseModel):
 	attractionId : int
 	date : str
 	time : str
-	price: int
+	price : int
+
+# 訂單資料details
+class orderData(BaseModel):
+	attraction : bookingData
+	date : str
+	time : str
+
+# 客戶資料
+class memContact(BaseModel):
+	name : str
+	email : str
+	phone : str
+
+# 訂單資料
+class orderInfo(BaseModel):
+	price : int
+	trip : orderData
+	contact : memContact
+
+# 建立新的訂單
+class createOrder(BaseModel):
+	prime : str
+	order : orderInfo
 	
+# 付款訊息
+class payMessage(BaseModel):
+	status : int
+	message : str
+
+# 訂單回應格式details
+class orderResDetail(BaseModel):
+	number : str
+	payment : payMessage
+
+# 訂單回應格式
+class orderResponse(BaseModel):
+	data : orderResDetail
+
+# 取得訂單資料格式詳細
+class getOrderDetail(BaseModel):
+	number : str
+	price : int
+	trip : orderData
+	contact : memContact
+	status : int
+
+
+# 取得訂單資料格式
+class getOrderResponse(BaseModel):
+	data : getOrderDetail | None
 
 app=FastAPI()
 
@@ -494,8 +646,8 @@ def booking_fun(credentials: HTTPAuthorizationCredentials = Depends(security)):
 	token = credentials.credentials.replace('Bearer ', '')
 	try:
 		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-		# print(payload)
 		id = payload['id']
+		# print(id)
 		check_DB = check_member(payload['email'])
 
 		if not check_DB:
@@ -632,7 +784,205 @@ def delete_booking(credentials: HTTPAuthorizationCredentials = Depends(security)
 			'error' : True,
 			'message' : str(e)
 		})
+
+@app.post('/api/orders', tags=['order'], response_model=orderResponse, responses={400:{'model' : ErrorResponse, 'description' : '建立失敗，輸入不正確或其他原因'}, 403:{'model' : ErrorResponse, 'description' : '未登入系統，拒絕存取'}, 500: {'model' : ErrorResponse, 'description' : '伺服器內部錯誤'}})
+def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials = Depends(security)):
+	token = credentials.credentials.replace('Bearer ', '')
+	try:
+		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+		id = payload['id']
+		check_DB = check_member(payload['email'])
+
+		if not check_DB:
+			return JSONResponse(status_code=403, content={
+                'error': True,
+                'message': '使用者不存在或已被刪除'
+            })
+		prime = request.prime
+		order_data = request.order
+		price = order_data.price
+		attraction_data = request.order.trip.attraction
+		attraction_id = attraction_data.id
+		attraction_name = attraction_data.name
+		attraction_address = attraction_data.address
+		attraction_image = attraction_data.image
+		date = order_data.trip.date
+		time = order_data.trip.time
+		user_data = request.order.contact
+		user_id = id
+		user_name = user_data.name
+		user_email = user_data.email
+		user_phone = user_data.phone
+
+		status = 'unpaid'
+		order_num = None
+		PARTNER_KEY = os.getenv('PARTNER_KEY')
+
+		
+		# 確認日期格式
+		time = datetime.now(timezone.utc)
+		edit_time = str(time)
+		current_date = edit_time[0:10]
+		# print(current_date)
+		order_num_son = get_auto_increment()
+		
+		if order_num_son == None:
+			order_num = current_date + '0' + '1'
+		else:
+			order_num = current_date + '0' + str(order_num_son + 1)
+
+		# 寫入資料庫
+		write_order_data(
+			order_num, 
+			user_id, 
+			user_name, 
+			user_phone,
+			user_email,
+			attraction_id, 
+			attraction_name, 
+			attraction_address, 
+			attraction_image,
+			date,
+			time,
+			price,
+			status
+			)
+		credit_load = {
+  			"prime": prime,
+  			"partner_key": PARTNER_KEY,
+  			"merchant_id": "pertvertcasher_CTBC",
+  			"amount": price,
+			'order_number' : order_num,
+  			"details":"TapPay Test",
+  			"cardholder": {
+      			"phone_number": user_phone,
+      			"name": user_name,
+      			"email": user_email,
+  				},
+  			"remember": False
+		}
+		url = 'https://sandbox.tappaysdk.com/tpc/payment/pay-by-prime'
+		headers = {
+			'Content-Type': 'application/json',
+			'x-api-key' : PARTNER_KEY
+			}
+
+		response = requests.post(url, json=credit_load, headers=headers)
+
+		# 寫入已付款資料
+		if response.status_code != 200:
+			return {
+				'error' : True,
+				'message' : 'taypay HTTP error'
+			}
+		taypay_result = response.json()
+		print(taypay_result)
+		if taypay_result['status'] == 0:
+			update_status()
+			payment_id = taypay_result['order_number'][-2] + taypay_result['order_number'][-1]
+			write_payment(payment_id, taypay_result['amount'])
+			delete_booking_data()
+			return {
+				'data' : {
+					'number' : taypay_result['order_number'],
+					'payment' : {
+						'status' : taypay_result['status'],
+						'message' : '付款成功'
+					}
+				}
+			}
+		else:
+			return JSONResponse(status_code=400, content={
+			'error' : True,
+			'message' : str(e)
+		})
+			
+	except jwt.ExpiredSignatureError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 已過期，請重新登入'
+		})
+	except jwt.InvalidTokenError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 無效，請重新登入'
+		})
+	except Exception as e:
+		return JSONResponse(status_code=400, content={
+			'error' : True,
+			'message' : str(e)
+		})
+	except Exception as e:
+		return JSONResponse(status_code=500, content={
+			'error' : True,
+			'message' : str(e)
+		})
+
+
+@app.get('/api/orders/{number}', tags=['order'], response_model=getOrderResponse, responses={403:{'model' : ErrorResponse, 'description' : '未登入系統，拒絕存取'}})
+def get_order(number:str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+	token = credentials.credentials.replace('Bearer ', '')
+	try:
+		payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+		id = payload['id']
+		# print(id)
+		check_DB = check_member(payload['email'])
+
+		if not check_DB:
+			return JSONResponse(status_code=403, content={
+                'error': True,
+                'message': '使用者不存在或已被刪除'
+            })
+		
+		render_data = get_order_complete(number, id)
+		if render_data == []:
+			return {
+				'data' : None
+			}
+		else:
+			render_data_arr = []
+			for i in render_data[0]:
+				render_data_arr.append(i)
+
+			if render_data_arr[13] == 'paid':
+				render_data_arr[13] = 1
+			
+			return {
+				"data": {
+					"number": render_data_arr[1],
+					"price": render_data_arr[12],
+					"trip": {
+						"attraction": {
+							"id": render_data_arr[6],
+							"name": render_data_arr[7],
+							"address": render_data_arr[8],
+							"image": render_data_arr[9]
+							},
+						"date": render_data_arr[10],
+						"time": render_data_arr[11]
+					},
+					"contact": {
+					"name": render_data_arr[3],
+					"email": str(render_data_arr[2]),
+					"phone": render_data_arr[4]
+					},
+					"status": render_data_arr[13]
+				}
+			}
+		
 	
+	except jwt.ExpiredSignatureError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 已過期，請重新登入'
+		})
+	except jwt.InvalidTokenError:
+		return JSONResponse(status_code=403, content={
+			'error': True,
+			'message': 'Token 無效，請重新登入'
+		})
+	
+
 app.mount('/static', StaticFiles(directory='static'), name='static')
 # Static Pages (Never Modify Code in this Block)
 @app.get("/", include_in_schema=False)

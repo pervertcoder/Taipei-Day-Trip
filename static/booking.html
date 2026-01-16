@@ -8,6 +8,7 @@
     <title>Booking</title>
   </head>
   <body>
+    <script src="https://js.tappaysdk.com/sdk/tpdirect/v5.14.0" defer></script>
     <script src="/static/booking.js" defer></script>
     <div class="container">
       <div class="topbar topbar__container--whole">
@@ -34,7 +35,7 @@
       <div class="emptyMessage state__off">
         <p class="scheduleState font__style2"></p>
       </div>
-      <div class="attraction__info">
+      <div class="attraction__info state__off">
         <div class="schedule__info">
           <div class="image__left">
             <img class="atImg" src="" alt="photo" />
@@ -66,8 +67,8 @@
           </div>
         </div>
       </div>
-      <div class="seperateLine__inside"></div>
-      <div class="access">
+      <div class="seperateLine__inside state__off"></div>
+      <div class="access state__off">
         <h1 class="accessH1 font__style1">您的聯絡資訊</h1>
         <div class="access__inside">
           <p>聯絡姓名：</p>
@@ -87,28 +88,33 @@
           </p>
         </div>
       </div>
-      <div class="seperateLine__inside"></div>
-      <div class="credit">
+      <div class="seperateLine__inside state__off"></div>
+      <div class="credit state__off" id="credit">
         <h1 class="creditH1 font__style1">信用卡付款資訊</h1>
         <div class="credit__inside">
-          <p>卡片號碼：</p>
-          <input type="text" id="creditNum" placeholder="**** **** **** ****" />
+          <p class="card">卡片號碼：</p>
+          <div class="tpfield" id="card-number"></div>
+          <p class="error__card error__off">錯誤</p>
         </div>
         <div class="credit__inside">
-          <p>過期時間：</p>
-          <input type="text" id="exp" placeholder="MM/YY" />
+          <p class="tme">過期時間：</p>
+          <div class="tpfield" id="card-expiration-date"></div>
+          <p class="error__exp error__off">錯誤</p>
         </div>
         <div class="credit__inside">
-          <p>驗證密碼：</p>
-          <input type="password" id="password" placeholder="CVV" />
+          <p class="pass">驗證密碼：</p>
+          <div class="tpfield" id="card-ccv"></div>
+          <p class="error__ccv error__off">錯誤</p>
         </div>
       </div>
-      <div class="seperateLine__inside"></div>
-      <div class="payCheck">
+      <div class="seperateLine__inside state__off"></div>
+      <div class="payCheck state__off">
         <div class="priceShell">
           <p class="priceCheck"></p>
         </div>
-        <button type="button" class="comfirmBtn">確認訂購並付款</button>
+        <button type="button" class="comfirmBtn" disabled="disabled">
+          確認訂購並付款
+        </button>
       </div>
     </div>
     <footer class="footer footer__structure footer__layout footer__height--off">

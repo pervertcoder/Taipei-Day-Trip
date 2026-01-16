@@ -142,3 +142,4 @@ cython_debug/
 
 .env
 .env_jwt
+.env_tappay
