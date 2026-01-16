@@ -313,7 +313,7 @@ comfirmBtn.addEventListener("click", async () => {
       return;
     }
     const cardPrime = result.card.prime;
-    alert("get prime 成功，prime: " + result.card.prime);
+    console.log("get prime 成功，prime: " + cardPrime);
 
     const payload = {
       prime: cardPrime,
