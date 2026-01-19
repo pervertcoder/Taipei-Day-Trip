@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 import os
 import mysql.connector
+from mysql.connector import pooling
 from pydantic import BaseModel
 from typing import List
 import jwt
@@ -39,13 +40,19 @@ def split_maker(string:str) -> list:
 			new_target_lis[m] = '無'
 	return new_target_lis
 
+# 建立連線池 connection pool
+pool = pooling.MySQLConnectionPool(
+	pool_name='mypool',
+	pool_size=10,
+	pool_reset_session=True,
+	host = os.getenv('DB_HOST'),
+	user = os.getenv('DB_USER'),
+	password = os.getenv('DB_PASSWORD')
+)
+
+
 def get_db_connect():
-	mydb = mysql.connector.connect(
-		host = os.getenv('DB_HOST'),
-		user = os.getenv('DB_USER'),
-        password = os.getenv('DB_PASSWORD')
-    )
-	return mydb
+	return pool.get_connection()
 
 def insert_register_data(n:str, m:str, p:str):
 	conn = get_db_connect()
@@ -70,9 +77,6 @@ def check_member(m:str) -> list:
 
 # print(check_member('test@test.com'))
 
-def check_rigisted_mem(m:str) -> list:
-	pass
-
 def get_mrt_data() -> list:
 	conn = get_db_connect()
 	mycursor = conn.cursor()
@@ -80,6 +84,7 @@ def get_mrt_data() -> list:
 	sql = 'select MRT_data, count(*) as 次數 from attraction_info group by MRT_data order by 次數 desc'
 	mycursor.execute(sql)
 	result = [x[0] for x in mycursor]
+	conn.close()
 	return result
 
 def get_data_name() -> list:
@@ -90,6 +95,7 @@ def get_data_name() -> list:
 
 	mycursor.execute(sql)
 	result = [x[0] for x in mycursor]
+	conn.close()
 	return result
 
 
@@ -100,6 +106,7 @@ def get_cate_data() -> list:
 	sql = 'select cate_data from attraction_info group by cate_data'
 	mycursor.execute(sql)
 	result = [x[0] for x in mycursor]
+	conn.close()
 	return result
 
 def get_attraction_data(data_id:int) -> tuple:
@@ -109,6 +116,7 @@ def get_attraction_data(data_id:int) -> tuple:
 	sql = 'select * from attraction_info where id = %s'
 	mycursor.execute(sql, (data_id,))
 	result = [x for x in mycursor]
+	conn.close()
 	return result[0]
 
 def page_date(page:int, category:str | None = None, keyword:str | None = None) -> tuple:
@@ -141,6 +149,7 @@ def page_date(page:int, category:str | None = None, keyword:str | None = None) -
 	
 	mycursor.execute(sql, tuple(param))
 	result = mycursor.fetchall()
+	conn.close()
 	return result
 
 def diff_page(page:int, category:str | None = None, keyword:str | None = None) -> list:
@@ -174,6 +183,7 @@ def diff_page(page:int, category:str | None = None, keyword:str | None = None) -
 	final_result = []
 	final_result.append(result[0][0])
 	final_result.append(int(result[0][1]))
+	conn.close()
 	return final_result
 
 # booking資料寫入
@@ -194,6 +204,7 @@ def check_booking_data()->list:
 	mycursor.execute('use tourist_attraction')
 	mycursor.execute('select * from booking_data')
 	result = [x for x in mycursor]
+	conn.close()
 	return result
 
 # 刪除資料表
@@ -226,6 +237,7 @@ def render_booking():
 		on booking_data.attraction_id = attraction_info.id
 	''')
 	result = [x for x in mycursor]
+	conn.close()
 	return result
 a = render_booking()
 # print(a[0])
@@ -290,6 +302,7 @@ def get_auto_increment() -> int:
 
 	result = [x for x in mycursor]
 	final_result = result[0]
+	conn.close()
 	return final_result[0]
 # print(get_auto_increment())
 
@@ -328,6 +341,7 @@ def get_order_complete(orderN:str, user_id:int) -> tuple:
 	mycursor.execute(sql, (orderN, user_id))
 
 	result = [x for x in mycursor]
+	conn.close()
 	return result
 
 c = get_order_complete('2026-01-1905', 6)
