@@ -307,12 +307,12 @@ def write_payment(booking_id, amount):
 	print('data insert successfully')
 
 # 更新訂單狀態
-def update_status():
+def update_status(id:int):
 	conn = get_db_connect()
 	mycursor = conn.cursor()
 	mycursor.execute('use tourist_attraction')
 
-	mycursor.execute("update order_data set status='paid'")
+	mycursor.execute("update order_data set status='paid' where id = %s", (id,))
 
 	conn.commit()
 	conn.close()
@@ -324,13 +324,13 @@ def get_order_complete(orderN:str, user_id:int) -> tuple:
 	mycursor = conn.cursor()
 	mycursor.execute('use tourist_attraction')
 
-	sql = "select * from order_data where status = 'paid' and order_num = %s and user_id = %s"
+	sql = "select * from order_data where order_num = %s and user_id = %s"
 	mycursor.execute(sql, (orderN, user_id))
 
 	result = [x for x in mycursor]
 	return result
 
-c = get_order_complete('2026-01-1501', 6)
+c = get_order_complete('2026-01-1905', 6)
 # print(c)
 
 # 捷運/分類資料回傳格式
@@ -436,9 +436,15 @@ class orderResDetail(BaseModel):
 	number : str
 	payment : payMessage
 
+# 訂單回應格式details-付款失敗
+class orderResDetailFalse(BaseModel):
+	number : str
+	error : bool
+	message : str
+
 # 訂單回應格式
 class orderResponse(BaseModel):
-	data : orderResDetail
+	data : orderResDetail | orderResDetailFalse
 
 # 取得訂單資料格式詳細
 class getOrderDetail(BaseModel):
@@ -877,8 +883,9 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 			}
 		taypay_result = response.json()
 		print(taypay_result)
+		booking_id = order_num[-2] + order_num[-1];
 		if taypay_result['status'] == 0:
-			update_status()
+			update_status(booking_id)
 			payment_id = taypay_result['order_number'][-2] + taypay_result['order_number'][-1]
 			write_payment(payment_id, taypay_result['amount'])
 			delete_booking_data()
@@ -892,10 +899,14 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 				}
 			}
 		else:
-			return JSONResponse(status_code=400, content={
-			'error' : True,
-			'message' : str(e)
-		})
+			return {
+				'data' : {
+					'number' : order_num,
+					'error' : True,
+					'message' : '付款失敗'
+				}
+			}
+		
 			
 	except jwt.ExpiredSignatureError:
 		return JSONResponse(status_code=403, content={
@@ -944,7 +955,9 @@ def get_order(number:str, credentials: HTTPAuthorizationCredentials = Depends(se
 			for i in render_data[0]:
 				render_data_arr.append(i)
 
-			if render_data_arr[13] == 'paid':
+			if render_data_arr[13] != 'paid':
+				render_data_arr[13] = 2
+			else:
 				render_data_arr[13] = 1
 			
 			return {

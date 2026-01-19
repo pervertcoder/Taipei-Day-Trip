@@ -114,5 +114,8 @@ create table payment_data(
     foreign key (booking_id) references order_data(id)
 )
 
-delete from order_data where id = 1;
+delete from order_data where id >= 1;
 alter table order_data auto_increment = 1;
+
+delete from payment_data where id >= 1;
+alter table payment_data auto_increment = 1;

@@ -65,7 +65,11 @@ const orderComplete = async function () {
   console.log(response);
 
   if (response.data !== null) {
-    message.textContent = `訂單：${response.data.number}，已完成付款`;
+    if (response.data.status === 1) {
+      message.textContent = `訂單：${response.data.number}，已完成付款`;
+    } else {
+      message.textContent = "付款失敗";
+    }
   } else {
     message.textContent = "查無付款完成訂單";
   }
