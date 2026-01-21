@@ -1,5 +1,19 @@
 "use strict";
 
+const getCurrentTime = function () {
+  const currentTime = new Date();
+  const currentYear = currentTime.getFullYear();
+  const currentMonth = currentTime.getMonth() + 1;
+  const currentDate = currentTime.getDate();
+
+  const answer = {
+    year: currentYear,
+    month: currentMonth,
+    date: currentDate,
+  };
+  return answer;
+};
+const currentDateObj = getCurrentTime();
 const scheduleBtn = document.querySelector(".topbar__right--booking");
 const scheduleStart = document.querySelector(".scheduleStart");
 // 檢查token
@@ -30,7 +44,7 @@ const checkState = async function () {
       //date
       const date = document.getElementById("dateIp").value;
       const selectRadio = document.querySelector(
-        'input[type="radio"][name="time"]:checked'
+        'input[type="radio"][name="time"]:checked',
       );
 
       const label = document.querySelector(`label[for="${selectRadio.id}"]`);
@@ -49,6 +63,16 @@ const checkState = async function () {
       };
       if (!date) {
         alert("請選擇日期");
+        return;
+      }
+      const dateMonth = rB.date.slice(5, 7);
+      const dateDate = rB.date.slice(8);
+      if (dateMonth < currentDateObj.month) {
+        alert("請選擇有效日期");
+        return;
+      }
+      if (dateDate <= currentDateObj.date) {
+        alert("請選擇有效日期");
         return;
       }
       const url = "/api/booking";
@@ -204,7 +228,7 @@ const getAttractionIdData = async function () {
       const coloredSons = Array.from(sons).filter(
         (son) =>
           son.dataset.id === String(currentPos) ||
-          son.dataset.id === String(currentPos - 1)
+          son.dataset.id === String(currentPos - 1),
       );
       coloredSons[0].classList.remove("sonIndi__stat--on");
       coloredSons[1].classList.add("sonIndi__stat--on");
@@ -221,7 +245,7 @@ const getAttractionIdData = async function () {
       const coloredSons = Array.from(sons).filter(
         (son) =>
           son.dataset.id === String(currentPos) ||
-          son.dataset.id === String(currentPos + 1)
+          son.dataset.id === String(currentPos + 1),
       );
       coloredSons[0].classList.add("sonIndi__stat--on");
       coloredSons[1].classList.remove("sonIndi__stat--on");
@@ -237,6 +261,17 @@ getAttractionIdData();
 const error = document.querySelector(".eror");
 const registBtn = document.getElementById("regist");
 
+// 檢查input格式
+const checkFormat = function (strParam) {
+  const searchAt = strParam.indexOf("@");
+  const searchCom = strParam.indexOf(".com");
+  if (searchAt === -1 || searchCom === -1) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
 // 按鈕
 registBtn.addEventListener("click", async () => {
   const inputName = document.getElementById("user");
@@ -249,13 +284,11 @@ registBtn.addEventListener("click", async () => {
     email: inputMail.value.trim(),
     password: inputPass.value.trim(),
   };
-
-  if (
-    !inputName.value.trim() ||
-    !inputMail.value.trim() ||
-    !inputPass.value.trim()
-  ) {
+  const checkInputFormat = checkFormat(payload.email);
+  if (!payload.name || !payload.email || !payload.password) {
     error.textContent = "請輸入姓名、信箱和密碼";
+  } else if (checkInputFormat === false) {
+    error.textContent = "email格式不符";
   } else {
     const url = "/api/user";
     let response = await fetch(url, {
@@ -286,6 +319,10 @@ loginBtn.addEventListener("click", async () => {
 
   const payload = { email: mail2, password: pass2 };
   // console.log(payload);
+  if (!payload.email || !payload.password) {
+    error2.textContent = "請輸入帳號或密碼";
+    return;
+  }
 
   const url = "/api/user/auth";
   const response = await fetch(url, {

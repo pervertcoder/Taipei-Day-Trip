@@ -11,8 +11,8 @@ import requests
 from db_controller.db_MRT.db_MRT_category import get_mrt_data, get_cate_data
 from env_settings.settings import SECRET_KEY, PARTNER_KEY, ALGORITHM
 from db_controller.db_attraction import split_maker, get_attraction_data, page_date, diff_page
-from db_controller.db_user import insert_register_data, check_member, create_jwt
-from db_controller.db_booking import insert_booking_data, check_booking_data, delete_booking_data, render_booking
+from db_controller.db_user import insert_register_data, check_member, create_jwt, check_format
+from db_controller.db_booking import insert_booking_data, check_booking_data, delete_booking_data, render_booking, check_time
 from db_controller.db_order import write_order_data, get_auto_increment, write_payment, update_status, get_order_complete
 from db_controller.api_class import DataResponse, ErrorResponse, AttractionResponse, AttractionDataResponse, stateResponse, registDataRequest, loginDataRequest, loginDataResponse, loginDataCheck, bookingResponse, createBooking, createOrder, orderResponse, getOrderResponse
 
@@ -30,9 +30,10 @@ async def register (request:registDataRequest):
 		state = True
 		# 檢查有無重複
 		check_email = check_member(email)
-		print(check_email)
+		# 檢查格式
+		check_email_format = check_format(email)
 		# 存入資料庫
-		if check_email != []:
+		if check_email != [] or check_email_format != True:
 			state = False
 			# raise HTTPException(status_code=400, detail='Email已存在')
 		if state:
@@ -58,7 +59,6 @@ async def member_data (request:loginDataRequest):
 		email = request.email
 		password = request.password
 		check = check_member(email)
-		# print(check[0][0], check[0][2])
 		if check != [] and password == check[0][3]:
 			token = create_jwt({'id' : check[0][0], 'email' : check[0][2]})
 			return {
@@ -275,6 +275,13 @@ def create_booking(request:createBooking, credentials: HTTPAuthorizationCredenti
 		time = request.time
 		price = int(request.price)
 		check_booking = check_booking_data()
+		checking_time = check_time()
+		if int(date[5:7]) < int(checking_time['month']):
+			print('無效日期')
+			return
+		if int(date[8:10]) <= int(checking_time['date']):
+			print('無效日期')
+			return
 		if not check_booking:
 			insert_booking_data(user_id, attraction_id, date, time, price)
 		else:

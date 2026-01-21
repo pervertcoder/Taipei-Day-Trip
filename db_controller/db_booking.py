@@ -1,4 +1,5 @@
 from db_controller.db_pool import get_db_connect
+import datetime
 
 # booking資料寫入
 def insert_booking_data(user_id:int, attraction_id:int, date:str, time:str, price:int):
@@ -54,3 +55,15 @@ def render_booking():
 	conn.close()
 	return result
 a = render_booking()
+
+def check_time() -> dict:	
+	current_time = str(datetime.datetime.now())
+	current_year = current_time[0:4]
+	current_month = current_time[5:7]
+	current_date = current_time[8:10]
+	timeDic = {
+		'year' : current_year,
+		'month' : current_month,
+		'date' : current_date
+	}
+	return timeDic
