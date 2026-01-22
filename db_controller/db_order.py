@@ -102,4 +102,12 @@ def get_order_complete(orderN:str, user_id:int) -> tuple:
 	conn.close()
 	return result
 
-c = get_order_complete('2026-01-1905', 6)
+# c = get_order_complete('2026-01-1905', 6)
+
+# 檢查結帳資料
+def check_format_phone(str_param:str) -> bool:
+	search_dash = str_param.index('-')
+	if search_dash == -1:
+		return False
+	else:
+		return True

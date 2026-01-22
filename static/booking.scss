@@ -237,7 +237,9 @@
   margin-bottom: 40px;
 }
 
-.access p {
+.contact__name,
+.contact__mail,
+.contact__phone {
   display: inline-block;
   font-size: 16px;
   font-weight: 400;
@@ -260,6 +262,14 @@
   font-size: 16px;
   font-weight: 400;
   color: #666666;
+}
+
+.error__name,
+.error__mail,
+.error__phone {
+  display: inline-block;
+  color: red;
+  margin-left: 10px;
 }
 
 .error__card,

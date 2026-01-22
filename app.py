@@ -13,7 +13,7 @@ from env_settings.settings import SECRET_KEY, PARTNER_KEY, ALGORITHM
 from db_controller.db_attraction import split_maker, get_attraction_data, page_date, diff_page
 from db_controller.db_user import insert_register_data, check_member, create_jwt, check_format
 from db_controller.db_booking import insert_booking_data, check_booking_data, delete_booking_data, render_booking, check_time
-from db_controller.db_order import write_order_data, get_auto_increment, write_payment, update_status, get_order_complete
+from db_controller.db_order import write_order_data, get_auto_increment, write_payment, update_status, get_order_complete, check_format_phone
 from db_controller.api_class import DataResponse, ErrorResponse, AttractionResponse, AttractionDataResponse, stateResponse, registDataRequest, loginDataRequest, loginDataResponse, loginDataCheck, bookingResponse, createBooking, createOrder, orderResponse, getOrderResponse
 
 
@@ -32,6 +32,11 @@ async def register (request:registDataRequest):
 		check_email = check_member(email)
 		# 檢查格式
 		check_email_format = check_format(email)
+		if check_email_format == False:
+			return JSONResponse(status_code=400, content={
+				'error' : True,
+				'message' : 'Email已存在'
+			})
 		# 存入資料庫
 		if check_email != [] or check_email_format != True:
 			state = False
@@ -384,6 +389,13 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 		user_name = user_data.name
 		user_email = user_data.email
 		user_phone = user_data.phone
+		check_format_order = check_format(user_email)
+		check_format_cellphone = check_format_phone(user_phone);
+		if check_format_order == False or check_format_cellphone == False:
+			JSONResponse(status_code=400, content={
+			'error' : True,
+			'message' : '資料格式有誤'
+		})
 
 		status = 'unpaid'
 		order_num = None
