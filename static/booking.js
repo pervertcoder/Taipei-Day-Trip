@@ -11,7 +11,8 @@ toHomepage.addEventListener("click", () => {
 });
 
 const titleInside = document.querySelector(".title__inside");
-
+// const checkCheck = document.querySelectorAll(".checkClass");
+// console.log(checkCheck[0].classList);
 // 判斷token
 const token = localStorage.getItem("token");
 const loginButton = document.querySelector(".loginButton");
@@ -112,7 +113,7 @@ const attraction_render = async function () {
       });
 
       const response = await req.json();
-      window.location.href = "/booking";
+      window.location.reload();
     });
   }
 };
@@ -128,6 +129,63 @@ const accessFun = async function () {
   accessMail.value = answer.email;
 };
 accessFun();
+
+// 檢查會員資料格式
+const checkFormat = function (strParam) {
+  const searchAt = strParam.indexOf("@");
+  const searchCom = strParam.indexOf(".com");
+  if (searchAt === -1 || searchCom === -1) {
+    return false;
+  } else {
+    return true;
+  }
+};
+const checkPhoneFormat = function (strParam) {
+  const searchDash = strParam.indexOf("-");
+  if (searchDash === -1) {
+    return false;
+  } else {
+    return true;
+  }
+};
+const contactName = document.getElementById("userName");
+const contactMail = document.getElementById("email");
+const contactPhone = document.getElementById("phone");
+const inputNameCheck = document.querySelector(".error__name");
+const inputMailCheck = document.querySelector(".error__mail");
+const inputPhoneCheck = document.querySelector(".error__phone");
+contactName.addEventListener("blur", (e) => {
+  if (!contactName.value.trim() || contactName.value.length > 15) {
+    inputNameCheck.classList.remove("error__off");
+  } else {
+    inputNameCheck.classList.add("error__off");
+  }
+});
+contactMail.addEventListener("blur", (e) => {
+  const checkFormatMail = checkFormat(contactMail.value.trim());
+  if (!contactMail.value.trim() || checkFormatMail === false) {
+    inputMailCheck.classList.remove("error__off");
+  } else {
+    inputMailCheck.classList.add("error__off");
+  }
+});
+contactPhone.addEventListener("blur", (e) => {
+  const contactPhoneVa = contactPhone.value.trim();
+  const contactPhoneFirst = contactPhoneVa.slice(0, 6);
+  const contactPhoneSecond = contactPhoneVa.slice(7);
+  const checkDashFirst = checkPhoneFormat(contactPhoneFirst);
+  const checkDashSecond = checkPhoneFormat(contactPhoneSecond);
+  if (
+    !contactPhoneVa ||
+    checkDashFirst === false ||
+    checkDashSecond === false ||
+    contactPhoneVa.length !== 12
+  ) {
+    inputPhoneCheck.classList.remove("error__off");
+  } else {
+    inputPhoneCheck.classList.add("error__off");
+  }
+});
 
 // 登出
 document.body.addEventListener("click", (e) => {
@@ -167,7 +225,7 @@ const currentDate = dateDeal(dateY, dateM, dateD);
 TPDirect.setupSDK(
   166455,
   "app_q3TDhCMqAZ8ym6YDOgArHrEJORKc25munVXfXsGHlnww9TPJpDJVXjpc0WzY",
-  "sandbox"
+  "sandbox",
 );
 
 // input外觀設定
@@ -288,6 +346,14 @@ comfirmBtn.addEventListener("click", async () => {
   if (phoneN === "") {
     alert("請輸入電話號碼");
     return;
+  }
+  const checkClass = document.querySelectorAll(".checkClass");
+  for (let i of checkClass) {
+    let checkState = i.classList.contains("error__off");
+    if (!checkState) {
+      alert("個人資料或是信用卡資訊格式不符");
+      return;
+    }
   }
 
   // 拿資料

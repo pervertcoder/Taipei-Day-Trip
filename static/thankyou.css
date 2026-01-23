@@ -127,6 +127,11 @@
     margin: 0;
   }
 }
+@media (max-width: 715px) {
+  .message p {
+    font-size: 25px;
+  }
+}
 @media (max-width: 460px) {
   .container {
     max-width: 460px;
@@ -155,5 +160,8 @@
   .topbar__right--login {
     white-space: nowrap;
     margin: 0;
+  }
+  .message p {
+    font-size: 20px;
   }
 }/*# sourceMappingURL=thankyou.css.map */

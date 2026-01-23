@@ -1,457 +1,21 @@
 from fastapi import *
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from dotenv import load_dotenv
-import os
-import mysql.connector
-from pydantic import BaseModel
-from typing import List
-import jwt
-from datetime import datetime, timedelta, timezone
 from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import jwt
+from datetime import datetime, timezone
 import requests
 
-load_dotenv()
-SECRET_KEY = os.getenv('SECRET_KEY')
-ALGORITHM = 'HS256'
+# 資料庫操作函式
+from db_controller.db_MRT.db_MRT_category import get_mrt_data, get_cate_data
+from env_settings.settings import SECRET_KEY, PARTNER_KEY, ALGORITHM
+from db_controller.db_attraction import split_maker, get_attraction_data, page_date, diff_page
+from db_controller.db_user import insert_register_data, check_member, create_jwt, check_format
+from db_controller.db_booking import insert_booking_data, check_booking_data, delete_booking_data, render_booking, check_time
+from db_controller.db_order import write_order_data, get_auto_increment, write_payment, update_status, get_order_complete, check_format_phone
+from db_controller.api_class import DataResponse, ErrorResponse, AttractionResponse, AttractionDataResponse, stateResponse, registDataRequest, loginDataRequest, loginDataResponse, loginDataCheck, bookingResponse, createBooking, createOrder, orderResponse, getOrderResponse
 
-def create_jwt(data:dict):
-	payload = data.copy()
-	expire_time = datetime.now(timezone.utc) + timedelta(hours=1)
-	payload["exp"] = int((expire_time).timestamp())
-	token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-	return token
-
-
-def split_maker(string:str) -> list:
-	target_lis = string.split('https')
-	target_lis[0] = ':jpg'
-	new_target_lis = []
-	for i in target_lis:
-		x = i.replace(':', 'https:')
-		new_target_lis.append(x)
-	length_new = len(new_target_lis)
-	for m in range(length_new):
-		if new_target_lis[m][-3:].lower() == 'jpg' or new_target_lis[m][-3:].lower() == 'png':
-			new_target_lis[m] == new_target_lis[m]
-		else:
-			new_target_lis[m] = '無'
-	return new_target_lis
-
-def get_db_connect():
-	mydb = mysql.connector.connect(
-		host = os.getenv('DB_HOST'),
-		user = os.getenv('DB_USER'),
-        password = os.getenv('DB_PASSWORD')
-    )
-	return mydb
-
-def insert_register_data(n:str, m:str, p:str):
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	sql = 'insert into web_attraction_memberinfo (name, email, password) values (%s, %s, %s)'
-	mycursor.execute(sql, (n, m, p))
-
-	conn.commit()
-	conn.close()
-	print('data inserted successfully')
-
-def check_member(m:str) -> list:
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	sql = 'select * from web_attraction_memberinfo where email = %s'
-	mycursor.execute(sql, (m,))
-	result = [x for x in mycursor]
-	conn.close()
-	return result
-
-# print(check_member('test@test.com'))
-
-def check_rigisted_mem(m:str) -> list:
-	pass
-
-def get_mrt_data() -> list:
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	sql = 'select MRT_data, count(*) as 次數 from attraction_info group by MRT_data order by 次數 desc'
-	mycursor.execute(sql)
-	result = [x[0] for x in mycursor]
-	return result
-
-def get_data_name() -> list:
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	sql = 'select name_data from attraction_info'
-
-	mycursor.execute(sql)
-	result = [x[0] for x in mycursor]
-	return result
-
-
-def get_cate_data() -> list:
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	sql = 'select cate_data from attraction_info group by cate_data'
-	mycursor.execute(sql)
-	result = [x[0] for x in mycursor]
-	return result
-
-def get_attraction_data(data_id:int) -> tuple:
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	sql = 'select * from attraction_info where id = %s'
-	mycursor.execute(sql, (data_id,))
-	result = [x for x in mycursor]
-	return result[0]
-
-def page_date(page:int, category:str | None = None, keyword:str | None = None) -> tuple:
-	offset = page * 8
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	sql = 'select * from attraction_info'
-	# mrt = get_mrt_data()
-	# name = get_data_name()
-	sql_filter = []
-	param = []
-	if category:
-		sql_filter.append('cate_data = %s')
-		param.append(category)
-	if keyword:
-		mrt = get_mrt_data()
-		name = get_data_name()
-		if keyword in mrt:
-			sql_filter.append('MRT_data = %s')
-			param.append(keyword)
-			# and name_data LIKE %s
-		else:
-			sql_filter.append('name_data LIKE %s')
-			param.append(f'%{keyword}%')
-	if sql_filter:
-		sql += ' where' + ' ' + ' and '.join(sql_filter)
-	sql += ' limit %s, 8'
-	param.append(offset)
-	
-	mycursor.execute(sql, tuple(param))
-	result = mycursor.fetchall()
-	return result
-
-def diff_page(page:int, category:str | None = None, keyword:str | None = None) -> list:
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-
-	sql = 'select count(*) as total_count, ceil(count(*) / 8) as total_page from attraction_info'
-	mrt = get_mrt_data()
-	name = get_data_name()
-	sql_filter = []
-	param = []
-	if category:
-		sql_filter.append('cate_data = %s')
-		param.append(category)
-	if keyword:
-		if keyword in mrt:
-			sql_filter.append('MRT_data = %s')
-			param.append(keyword)
-		for i in name:
-			if keyword in i:
-				sql_filter.append('name_data like %s')
-				keyword_name = f'%{keyword}%'
-				param.append(keyword_name)
-				break
-	if sql_filter:
-		sql += ' where' + ' ' + ' and '.join(sql_filter)
-	
-	mycursor.execute(sql, tuple(param))
-	result = [x for x in mycursor]
-	final_result = []
-	final_result.append(result[0][0])
-	final_result.append(int(result[0][1]))
-	return final_result
-
-# booking資料寫入
-def insert_booking_data(user_id:int, attraction_id:int, date:str, time:str, price:int):
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	sql = 'insert into booking_data (user_id, attraction_id, date, time, price)value(%s, %s, %s, %s, %s)'
-	mycursor.execute(sql, (user_id, attraction_id, date, time, price))
-
-	conn.commit()
-	conn.close()
-	print('data inserted successfully')
-# 檢查booking資料
-def check_booking_data()->list:
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	mycursor.execute('select * from booking_data')
-	result = [x for x in mycursor]
-	return result
-
-# 刪除資料表
-def delete_booking_data():
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	mycursor.execute('truncate table booking_data')
-
-	conn.commit()
-	conn.close()
-
-# 拿booking資料
-def render_booking():
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	mycursor.execute('''select
-		booking_data.id,
-		booking_data.attraction_id,
-		booking_data.user_id,
-		booking_data.date,
-		booking_data.time,
-		booking_data.price,
-		attraction_info.name_data,
-		attraction_info.address_data,
-		attraction_info.file_data
-		from booking_data
-		join attraction_info
-		on booking_data.attraction_id = attraction_info.id
-	''')
-	result = [x for x in mycursor]
-	return result
-a = render_booking()
-# print(a[0])
-
-# 寫入order資料
-def write_order_data(
-		order_num:int,
-		user_id:int,
-		user_name:str,
-		user_phone:str,
-		user_email:str,
-		attraction_id:int,
-		attraction_name:str,
-		attraction_address:str,
-		attraction_image:str,
-		date:str,
-		time:str,
-		price:int,
-		status:str
-):
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	sql = '''insert into order_data(
-	order_num,
-	user_id,
-	user_name,
-	user_phone,
-	user_email,
-	attraction_id,
-	attraction_name, 
-	attraction_address,
-	image,
-	date,
-	time,
-	price,
-	status)values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-	'''
-	mycursor.execute(sql, (order_num,
-		user_id,
-		user_name,
-		user_phone,
-		user_email,
-		attraction_id,
-		attraction_name,
-		attraction_address,
-		attraction_image,
-		date,
-		time,
-		price,
-		status))
-	conn.commit()
-	conn.close()
-	print('data insert successfully')
-
-# 拿auto_increment
-def get_auto_increment() -> int:
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-	mycursor.execute('select max(id) from order_data')
-
-	result = [x for x in mycursor]
-	final_result = result[0]
-	return final_result[0]
-# print(get_auto_increment())
-
-# 寫入已付款資料
-def write_payment(booking_id, amount):
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-
-	sql = 'insert into payment_data(booking_id, amount)values(%s, %s)'
-	mycursor.execute(sql, (booking_id, amount))
-
-	conn.commit()
-	conn.close()
-	print('data insert successfully')
-
-# 更新訂單狀態
-def update_status():
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-
-	mycursor.execute("update order_data set status='paid'")
-
-	conn.commit()
-	conn.close()
-	print('update successfully')
-
-# 拿取付款完成訂單資料
-def get_order_complete(orderN:str, user_id:int) -> tuple:
-	conn = get_db_connect()
-	mycursor = conn.cursor()
-	mycursor.execute('use tourist_attraction')
-
-	sql = "select * from order_data where status = 'paid' and order_num = %s and user_id = %s"
-	mycursor.execute(sql, (orderN, user_id))
-
-	result = [x for x in mycursor]
-	return result
-
-c = get_order_complete('2026-01-1501', 6)
-# print(c)
-
-# 捷運/分類資料回傳格式
-class DataResponse(BaseModel):
-	data: List[str]
-
-class ErrorResponse(BaseModel):
-    error: bool
-    message: str
-
-class AttractionResponse(BaseModel):
-	data: dict
-
-class AttractionDataResponse(BaseModel):
-	nextPage: int | None
-	data: list
-
-# 成功狀態格式
-class stateResponse(BaseModel):
-	ok : bool
-
-# 註冊request格式
-class registDataRequest(BaseModel):
-	name : str
-	email : str
-	password : str
-
-# 登入request格式
-class loginDataRequest(BaseModel):
-	email :str
-	password : str
-
-#登入路由回傳格式
-class loginDataResponse(BaseModel):
-	token : str
-
-# 登入狀態驗證資料格式
-class userData(BaseModel):
-	id : int
-	name : str
-	email : str
-
-# 登入狀態驗證
-class loginDataCheck(BaseModel):
-	data : userData
-
-# 行程資料details
-class bookingData(BaseModel):
-	id : int
-	name : str
-	address : str
-	image : str
-	
-
-# 行程資料
-class booking(BaseModel):
-	attraction : bookingData
-	date : str
-	time : str
-	price : int
-
-# 行程
-class bookingResponse(BaseModel):
-	data : booking | None
-
-# 建立新的行程
-class createBooking(BaseModel):
-	attractionId : int
-	date : str
-	time : str
-	price : int
-
-# 訂單資料details
-class orderData(BaseModel):
-	attraction : bookingData
-	date : str
-	time : str
-
-# 客戶資料
-class memContact(BaseModel):
-	name : str
-	email : str
-	phone : str
-
-# 訂單資料
-class orderInfo(BaseModel):
-	price : int
-	trip : orderData
-	contact : memContact
-
-# 建立新的訂單
-class createOrder(BaseModel):
-	prime : str
-	order : orderInfo
-	
-# 付款訊息
-class payMessage(BaseModel):
-	status : int
-	message : str
-
-# 訂單回應格式details
-class orderResDetail(BaseModel):
-	number : str
-	payment : payMessage
-
-# 訂單回應格式
-class orderResponse(BaseModel):
-	data : orderResDetail
-
-# 取得訂單資料格式詳細
-class getOrderDetail(BaseModel):
-	number : str
-	price : int
-	trip : orderData
-	contact : memContact
-	status : int
-
-
-# 取得訂單資料格式
-class getOrderResponse(BaseModel):
-	data : getOrderDetail | None
 
 app=FastAPI()
 
@@ -466,9 +30,15 @@ async def register (request:registDataRequest):
 		state = True
 		# 檢查有無重複
 		check_email = check_member(email)
-		print(check_email)
+		# 檢查格式
+		check_email_format = check_format(email)
+		if check_email_format == False:
+			return JSONResponse(status_code=400, content={
+				'error' : True,
+				'message' : 'Email已存在'
+			})
 		# 存入資料庫
-		if check_email != []:
+		if check_email != [] or check_email_format != True:
 			state = False
 			# raise HTTPException(status_code=400, detail='Email已存在')
 		if state:
@@ -494,7 +64,6 @@ async def member_data (request:loginDataRequest):
 		email = request.email
 		password = request.password
 		check = check_member(email)
-		# print(check[0][0], check[0][2])
 		if check != [] and password == check[0][3]:
 			token = create_jwt({'id' : check[0][0], 'email' : check[0][2]})
 			return {
@@ -711,6 +280,13 @@ def create_booking(request:createBooking, credentials: HTTPAuthorizationCredenti
 		time = request.time
 		price = int(request.price)
 		check_booking = check_booking_data()
+		checking_time = check_time()
+		if int(date[5:7]) < int(checking_time['month']):
+			print('無效日期')
+			return
+		if int(date[8:10]) <= int(checking_time['date']):
+			print('無效日期')
+			return
 		if not check_booking:
 			insert_booking_data(user_id, attraction_id, date, time, price)
 		else:
@@ -813,10 +389,16 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 		user_name = user_data.name
 		user_email = user_data.email
 		user_phone = user_data.phone
+		check_format_order = check_format(user_email)
+		check_format_cellphone = check_format_phone(user_phone);
+		if check_format_order == False or check_format_cellphone == False:
+			JSONResponse(status_code=400, content={
+			'error' : True,
+			'message' : '資料格式有誤'
+		})
 
 		status = 'unpaid'
 		order_num = None
-		PARTNER_KEY = os.getenv('PARTNER_KEY')
 
 		
 		# 確認日期格式
@@ -877,8 +459,9 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 			}
 		taypay_result = response.json()
 		print(taypay_result)
+		booking_id = order_num[-2] + order_num[-1];
 		if taypay_result['status'] == 0:
-			update_status()
+			update_status(booking_id)
 			payment_id = taypay_result['order_number'][-2] + taypay_result['order_number'][-1]
 			write_payment(payment_id, taypay_result['amount'])
 			delete_booking_data()
@@ -892,10 +475,14 @@ def create_order(request:createOrder, credentials: HTTPAuthorizationCredentials 
 				}
 			}
 		else:
-			return JSONResponse(status_code=400, content={
-			'error' : True,
-			'message' : str(e)
-		})
+			return {
+				'data' : {
+					'number' : order_num,
+					'error' : True,
+					'message' : '付款失敗'
+				}
+			}
+		
 			
 	except jwt.ExpiredSignatureError:
 		return JSONResponse(status_code=403, content={
@@ -944,7 +531,9 @@ def get_order(number:str, credentials: HTTPAuthorizationCredentials = Depends(se
 			for i in render_data[0]:
 				render_data_arr.append(i)
 
-			if render_data_arr[13] == 'paid':
+			if render_data_arr[13] != 'paid':
+				render_data_arr[13] = 2
+			else:
 				render_data_arr[13] = 1
 			
 			return {

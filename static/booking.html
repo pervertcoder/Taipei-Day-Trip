@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -71,16 +71,19 @@
       <div class="access state__off">
         <h1 class="accessH1 font__style1">您的聯絡資訊</h1>
         <div class="access__inside">
-          <p>聯絡姓名：</p>
+          <p class="contact__name">聯絡姓名：</p>
           <input type="text" id="userName" />
+          <p class="error__name error__off checkClass">錯誤</p>
         </div>
         <div class="access__inside">
-          <p>聯絡信箱：</p>
+          <p class="contact__mail">聯絡信箱：</p>
           <input type="email" id="email" />
+          <p class="error__mail error__off checkClass">錯誤</p>
         </div>
         <div class="access__inside">
-          <p>手機號碼：</p>
-          <input type="text" id="phone" />
+          <p class="contact__phone">手機號碼：</p>
+          <input type="text" id="phone" placeholder="09XX-XXX-XXX" />
+          <p class="error__phone error__off checkClass">錯誤</p>
         </div>
         <div class="access__inside">
           <p>
@@ -94,17 +97,17 @@
         <div class="credit__inside">
           <p class="card">卡片號碼：</p>
           <div class="tpfield" id="card-number"></div>
-          <p class="error__card error__off">錯誤</p>
+          <p class="error__card error__off checkClass">錯誤</p>
         </div>
         <div class="credit__inside">
           <p class="tme">過期時間：</p>
           <div class="tpfield" id="card-expiration-date"></div>
-          <p class="error__exp error__off">錯誤</p>
+          <p class="error__exp error__off checkClass">錯誤</p>
         </div>
         <div class="credit__inside">
           <p class="pass">驗證密碼：</p>
           <div class="tpfield" id="card-ccv"></div>
-          <p class="error__ccv error__off">錯誤</p>
+          <p class="error__ccv error__off checkClass">錯誤</p>
         </div>
       </div>
       <div class="seperateLine__inside state__off"></div>

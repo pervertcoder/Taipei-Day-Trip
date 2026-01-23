@@ -190,7 +190,7 @@ const observer = new IntersectionObserver(
     root: null,
     rootMargin: "0px",
     threshold: 0.9,
-  }
+  },
 );
 
 // 畫面生成
@@ -474,6 +474,17 @@ clickE.addEventListener("click", () => {
 const error = document.querySelector(".eror");
 const registBtn = document.getElementById("regist");
 
+// 檢查input格式
+const checkFormat = function (strParam) {
+  const searchAt = strParam.indexOf("@");
+  const searchCom = strParam.indexOf(".com");
+  if (searchAt === -1 || searchCom === -1) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
 // 按鈕
 registBtn.addEventListener("click", async () => {
   const inputName = document.getElementById("user");
@@ -486,13 +497,11 @@ registBtn.addEventListener("click", async () => {
     email: inputMail.value.trim(),
     password: inputPass.value.trim(),
   };
-
-  if (
-    !inputName.value.trim() ||
-    !inputMail.value.trim() ||
-    !inputPass.value.trim()
-  ) {
+  const checkInputFormat = checkFormat(payload.email);
+  if (!payload.name || !payload.email || !payload.password) {
     error.textContent = "請輸入姓名、信箱和密碼";
+  } else if (checkInputFormat === false) {
+    error.textContent = "email格式不符";
   } else {
     const url = "/api/user";
     let response = await fetch(url, {
@@ -524,6 +533,10 @@ loginBtn.addEventListener("click", async () => {
   error2.textContent = "";
   const payload = { email: mail2, password: pass2 };
   // console.log(payload);
+  if (!payload.email || !payload.password) {
+    error2.textContent = "請輸入帳號或密碼";
+    return;
+  }
 
   const url = "/api/user/auth";
   const response = await fetch(url, {
