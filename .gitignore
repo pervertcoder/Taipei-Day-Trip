@@ -143,3 +143,4 @@ cython_debug/
 .env
 .env_jwt
 .env_tappay
+commit_message_editor.txt
